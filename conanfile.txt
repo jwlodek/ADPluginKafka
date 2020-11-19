@@ -1,0 +1,21 @@
+[requires]
+gtest/1.10.0
+librdkafka/1.5.0@ess-dmsc/stable
+
+[generators]
+cmake
+cmake_find_package
+virtualbuildenv
+virtualrunenv
+
+[options]
+gtest:shared=False
+librdkafka:shared=True
+
+[imports]
+., *.dylib* -> ./lib @ keep_path=False
+., *.so* -> ./lib @ keep_path=False
+., LICENSE* -> ./licenses @ folder=True, ignore_case=True
+., *.dll -> ./bin @ keep_path=False
+., *.a* -> ./lib @ keep_path=False
+., *.lib -> -> ./bin @ keep_path=False

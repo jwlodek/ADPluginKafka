@@ -1,0 +1,13 @@
+/build*/
+/cmake-build-*/
+.idea/
+*__pycache__*
+*.user
+pipeline.gdsl
+*.yml~
+*.j2~
+*.h~
+*.cxx~
+/system-tests/output-files/*.nxs
+venv
+*.log
