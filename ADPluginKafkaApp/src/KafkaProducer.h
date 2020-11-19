@@ -7,7 +7,7 @@
 #pragma once
 
 #include "ParamUtility.h"
-#include "json.h"
+#include "json/json.h"
 #include <asynNDArrayDriver.h>
 #include <atomic>
 #include <librdkafka/rdkafkacpp.h>
@@ -348,7 +348,7 @@ protected:
 
   /// @brief The root and broker json objects extracted from a json string.
   Json::Value root, brokers;
-  Json::Reader reader; /// @brief Parses std:string objects into a Json::value.
+  Json::CharReaderBuilder builder; /// @brief Parses std:string objects into a Json::value.
 
   /// @brief C++11 thread which periodically polls for connection stats.
   std::thread statusThread;

@@ -210,7 +210,9 @@ void KafkaProducer::SetConStat(KafkaProducer::ConStat stat,
 
 void KafkaProducer::ParseStatusString(std::string const &msg) {
   /// @todo We should probably extract some more stats from the JSON message
-  bool parseSuccess = reader.parse(msg, root);
+  const std::unique_ptr<Json::CharReader> reader(builder.newCharReader());
+  JSONCPP_STRING err;
+  bool parseSuccess = reader->parse(msg.c_str(), msg.c_str() + msg.size(), &root, &err);
   if (not parseSuccess) {
     SetConStat(KafkaProducer::ConStat::ERROR, "Status msg.: Unable to parse.");
     return;

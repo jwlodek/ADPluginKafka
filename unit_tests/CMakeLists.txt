@@ -45,22 +45,23 @@ target_link_directories(epics INTERFACE ${EPICS_LIB_DIRS})
 target_link_libraries(epics INTERFACE NDPlugin ADBase asyn Com)
 
 set(Common_SRC
-  jsoncpp.cpp
+    json/jsoncpp.cpp
 )
 
 set(Common_INC
-  base.h
-  flatbuffers.h
-  json.h
-  stl_emulation.h
-  NDArray_schema_generated.h
-  ParamUtility.h
+    flatbuffers/base.h
+    flatbuffers/flatbuffers.h
+    json/json.h
+    flatbuffers/stl_emulation.h
+    NDArray_schema_generated.h
+    ParamUtility.h
 )
 
 list(TRANSFORM Common_SRC PREPEND "../ADPluginKafkaApp/src/")
 list(TRANSFORM Common_INC PREPEND "../ADPluginKafkaApp/src/")
 
 add_library(Common OBJECT ${Common_SRC} ${Common_INC})
+target_include_directories(Common PRIVATE ../ADPluginKafkaApp/src/)
 
 set(Plugin_SRC
   KafkaProducer.cpp
