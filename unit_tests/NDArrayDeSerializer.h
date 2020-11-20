@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "NDArray_schema_generated.h"
+#include "ADArray_schema_generated.h"
 #include <NDArray.h>
 
 /** @brief Deserializes NDArray data previously serialized by flatbuffers.
@@ -31,3 +31,5 @@
  */
 void DeSerializeData(NDArrayPool *pNDArrayPool, const unsigned char *bufferPtr,
                      NDArray *&pArray);
+
+epicsTimeStamp nSecToEpicsTimestamp(std::uint64_t nSec);

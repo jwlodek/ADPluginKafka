@@ -164,8 +164,8 @@ NDArray *NDArrayGenerator::GenerateNDArray(size_t numAttr, size_t numElem,
   pArr->uniqueId = idCtr;
   idCtr++;
   pArr->timeStamp = M_PI;
-  pArr->epicsTS.nsec = 21212121;
-  pArr->epicsTS.secPastEpoch = 1484046150;
+  pArr->epicsTS.secPastEpoch = static_cast<int>(M_PI) / 1;
+  pArr->epicsTS.nsec = (M_PI - int(M_PI)) * 1000000000L;
   pArr->pAttributeList->clear();
   for (int y = 0; y < numAttr; y++) {
     pArr->pAttributeList->add(GenerateAttribute());

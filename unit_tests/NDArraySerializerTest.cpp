@@ -7,7 +7,7 @@
 #include "GenerateNDArray.h"
 #include "NDArrayDeSerializer.h"
 #include "NDArraySerializer.h"
-#include "NDArray_schema_generated.h"
+#include "ADArray_schema_generated.h"
 #include <ciso646>
 #include <fstream>
 #include <gmock/gmock.h>
@@ -25,19 +25,19 @@ public:
 };
 
 void CompareDataTypes(NDArray *arr1, NDArray *arr2);
-void CompareDataTypes(NDArray *arr1, const FB_Tables::NDArray *arr2);
+void CompareDataTypes(NDArray *arr1, const ADArray *arr2);
 
 void CompareSizeAndDims(NDArray *arr1, NDArray *arr2);
-void CompareSizeAndDims(NDArray *arr1, const FB_Tables::NDArray *arr2);
+void CompareSizeAndDims(NDArray *arr1, const ADArray *arr2);
 
 void CompareTimeStamps(NDArray *arr1, NDArray *arr2);
-void CompareTimeStamps(NDArray *arr1, const FB_Tables::NDArray *arr2);
+void CompareTimeStamps(NDArray *arr1, const ADArray *arr2);
 
 void CompareData(NDArray *arr1, NDArray *arr2);
-void CompareData(NDArray *arr1, const FB_Tables::NDArray *arr2);
+void CompareData(NDArray *arr1, const ADArray *arr2);
 
 void CompareAttributes(NDArray *arr1, NDArray *arr2);
-void CompareAttributes(NDArray *arr1, const FB_Tables::NDArray *arr2);
+void CompareAttributes(NDArray *arr1, const ADArray *arr2);
 
 void GenerateData(NDDataType_t type, size_t elements, void *ptr);
 
@@ -82,7 +82,7 @@ TEST_F(Serializer, SerializeTest) {
           unsigned char *bufferPtr = nullptr;
           size_t bufferSize;
           ser.SerializeData(*sendArr, bufferPtr, bufferSize);
-          auto recvArr = FB_Tables::GetNDArray(bufferPtr);
+          auto recvArr = GetADArray(bufferPtr);
           CompareDataTypes(sendArr, recvArr);
           CompareSizeAndDims(sendArr, recvArr);
           CompareTimeStamps(sendArr, recvArr);
@@ -102,7 +102,7 @@ class DeSerializer : public ::testing::Test {
 public:
   static void SetUpTestCase() {
     std::string DataFilePath{TEST_DATA_PATH};
-    std::ifstream inFile(DataFilePath + "someNDArray.data",
+    std::ifstream inFile(DataFilePath + "someADArray.data",
                          std::ifstream::in | std::ifstream::binary);
     inFile.seekg(0, inFile.end);
     fileSize = inFile.tellg();
@@ -127,43 +127,15 @@ TEST_F(DeSerializer, FileIntegrityTest) {
   ASSERT_NE(rawData, nullptr);
   flatbuffers::Verifier verifier(DeSerializer::rawData, DeSerializer::fileSize);
   ASSERT_GE(DeSerializer::fileSize, 1);
-  ASSERT_TRUE(FB_Tables::VerifyNDArrayBuffer(verifier));
+  ASSERT_TRUE(VerifyADArrayBuffer(verifier));
 }
 
 TEST_F(DeSerializer, FileContentTest) {
   ASSERT_NE(rawData, nullptr);
   ASSERT_GE(DeSerializer::fileSize, 1);
-  auto recvArr = FB_Tables::GetNDArray(rawData);
-  ASSERT_EQ(recvArr->id(), 2720);
+  auto recvArr = GetADArray(rawData);
+  ASSERT_EQ(recvArr->id(), 789679);
 }
-
-// TEST_F(Serializer, SerializeDeserializeProfiling) {
-//    NDArraySerializer ser;
-//    size_t numAttr = 10;
-//    size_t numElements = 50;
-//    NDDataType_t dataType = NDInt32;
-//    int numDims = 4;
-//    NDArray *sendArr = nullptr;
-//    NDArray *recvArr = nullptr;
-//    for (int i = 0; i < 2000; i++) {
-//        sendArr = arrGen->GenerateNDArray(numAttr, numElements, numDims,
-//        dataType);
-//        unsigned char *bufferPtr = nullptr;
-//        size_t bufferSize;
-//        ser.SerializeData(*sendArr, bufferPtr, bufferSize);
-//        DeSerializeData(recvPool, bufferPtr, bufferSize, recvArr);
-//        CompareDataTypes(sendArr, recvArr);
-//        CompareSizeAndDims(sendArr, recvArr);
-//        CompareTimeStamps(sendArr, recvArr);
-//        CompareData(sendArr, recvArr);
-//        CompareAttributes(sendArr, recvArr);
-//        sendArr->release();
-//        recvArr->release();
-//        arrGen->usedAttrStrings.clear();
-//    }
-//    delete sendArr;
-//    delete recvArr;
-//}
 
 TEST_F(Serializer, SerializeDeserializeTest) {
   NDArraySerializer ser;
@@ -204,9 +176,9 @@ void CompareDataTypes(NDArray *arr1, NDArray *arr2) {
   ASSERT_EQ(arr1->dataType, arr2->dataType);
 }
 
-void CompareDataTypes(NDArray *arr1, const FB_Tables::NDArray *arr2) {
+void CompareDataTypes(NDArray *arr1, const ADArray *arr2) {
   ASSERT_EQ(arr1->dataType,
-            NDArraySerializerStandIn::GetND_DType(arr2->dataType()));
+            NDArraySerializerStandIn::GetND_DType(arr2->data_type()));
 }
 
 void CompareSizeAndDims(NDArray *arr1, NDArray *arr2) {
@@ -238,7 +210,7 @@ void CompareSizeAndDims(NDArray *arr1, NDArray *arr2) {
   ASSERT_EQ(arr1Size, arr2Size);
 }
 
-void CompareSizeAndDims(NDArray *arr1, const FB_Tables::NDArray *arr2) {
+void CompareSizeAndDims(NDArray *arr1, const ADArray *arr2) {
   std::map<NDDataType_t, int> sizeList = {
       {NDInt8, 1},  {NDUInt8, 1},  {NDInt16, 2},   {NDUInt16, 2},
       {NDInt32, 4}, {NDUInt32, 4}, {NDFloat32, 4}, {NDFloat64, 8},
@@ -258,21 +230,22 @@ void CompareSizeAndDims(NDArray *arr1, const FB_Tables::NDArray *arr2) {
   };
 
   size_t arr1Size = getNumElements(arr1) * sizeList[arr1->dataType];
-  size_t arr2Size = arr2->pData()->size();
+  size_t arr2Size = arr2->data()->size();
   ASSERT_EQ(arr1Info.totalBytes, arr1Size);
   ASSERT_EQ(arr1Size, arr2Size);
 }
 
 void CompareTimeStamps(NDArray *arr1, NDArray *arr2) {
-  ASSERT_EQ(arr1->timeStamp, arr2->timeStamp);
+  ASSERT_NEAR(arr1->timeStamp, arr2->timeStamp, 0.0000001);
   ASSERT_EQ(arr1->epicsTS.secPastEpoch, arr2->epicsTS.secPastEpoch);
   ASSERT_EQ(arr1->epicsTS.nsec, arr2->epicsTS.nsec);
 }
 
-void CompareTimeStamps(NDArray *arr1, const FB_Tables::NDArray *arr2) {
-  ASSERT_EQ(arr1->timeStamp, arr2->timeStamp());
-  ASSERT_EQ(arr1->epicsTS.secPastEpoch, arr2->epicsTS()->secPastEpoch());
-  ASSERT_EQ(arr1->epicsTS.nsec, arr2->epicsTS()->nsec());
+void CompareTimeStamps(NDArray *arr1, const ADArray *arr2) {
+  ASSERT_NEAR(arr1->timeStamp, arr2->timestamp() / 1e9 - 631152000L, 0.0000001);
+  auto epicsTS = nSecToEpicsTimestamp(arr2->timestamp());
+  ASSERT_EQ(arr1->epicsTS.secPastEpoch, epicsTS.secPastEpoch);
+  ASSERT_EQ(arr1->epicsTS.nsec, epicsTS.nsec);
 }
 
 void CompareData(NDArray *arr1, NDArray *arr2) {
@@ -285,24 +258,24 @@ void CompareData(NDArray *arr1, NDArray *arr2) {
   ASSERT_EQ(std::memcmp(arr1->pData, arr2->pData, arr1Info.totalBytes), 0);
 }
 
-void CompareData(NDArray *arr1, const FB_Tables::NDArray *arr2) {
+void CompareData(NDArray *arr1, const ADArray *arr2) {
   NDArrayInfo_t arr1Info;
   arr1->getInfo(&arr1Info);
 
   // memcmp returns 0 if the data is the same, something else otherwise
   ASSERT_EQ(
-      std::memcmp(arr1->pData, arr2->pData()->data(), arr1Info.totalBytes), 0);
+      std::memcmp(arr1->pData, arr2->data()->data(), arr1Info.totalBytes), 0);
 }
 
-void CompareAttributes(NDArray *arr1, const FB_Tables::NDArray *arr2) {
-  ASSERT_EQ(arr1->pAttributeList->count(), arr2->pAttributeList()->size());
+void CompareAttributes(NDArray *arr1, const ADArray *arr2) {
+  ASSERT_EQ(arr1->pAttributeList->count(), arr2->attributes()->size());
 
-  std::set<const FB_Tables::NDAttribute *> attrPtrs;
+  std::set<const Attribute *> attrPtrs;
 
-  std::map<std::string, const FB_Tables::NDAttribute *> compAttrList;
-  for (int u = 0; u < arr2->pAttributeList()->size(); u++) {
-    const FB_Tables::NDAttribute *attPtr = arr2->pAttributeList()->Get(u);
-    compAttrList[attPtr->pName()->str()] = attPtr;
+  std::map<std::string, const Attribute *> compAttrList;
+  for (int u = 0; u < arr2->attributes()->size(); u++) {
+    const Attribute *attPtr = arr2->attributes()->Get(u);
+    compAttrList[attPtr->name()->str()] = attPtr;
   }
   ASSERT_EQ(compAttrList.size(), arr1->pAttributeList->count());
 
@@ -310,19 +283,19 @@ void CompareAttributes(NDArray *arr1, const FB_Tables::NDArray *arr2) {
   while (cAttr != nullptr) {
     ASSERT_NE(compAttrList.find(std::string(cAttr->getName())),
               compAttrList.end());
-    const FB_Tables::NDAttribute *compAttr =
+    const Attribute *compAttr =
         compAttrList[std::string(cAttr->getName())];
 
-    std::string descStr = std::string(compAttr->pDescription()->c_str());
+    std::string descStr = compAttr->description()->str();
 
     ASSERT_EQ(std::string(cAttr->getDescription()), descStr);
 
-    std::string srcStr = std::string(compAttr->pSource()->c_str());
+    std::string srcStr = compAttr->source()->str();
 
     ASSERT_EQ(std::string(cAttr->getSource()), srcStr);
 
     ASSERT_EQ(cAttr->getDataType(),
-              NDArraySerializerStandIn::GetND_AttrDType(compAttr->dataType()));
+              NDArraySerializerStandIn::GetND_AttrDType(compAttr->data_type()));
 
     size_t dataSize1;
     NDAttrDataType_t dType1;
@@ -330,28 +303,28 @@ void CompareAttributes(NDArray *arr1, const FB_Tables::NDArray *arr2) {
     size_t dataSize2;
     ASSERT_NE(cAttr->getValueInfo(&dType1, &dataSize1), ND_ERROR);
 
-    dType2 = NDArraySerializerStandIn::GetND_AttrDType(compAttr->dataType());
+    dType2 = NDArraySerializerStandIn::GetND_AttrDType(compAttr->data_type());
 
     ASSERT_EQ(dType1, dType2);
 
-    dataSize2 = compAttr->pData()->size();
+    dataSize2 = compAttr->data()->size();
 
     ASSERT_EQ(dataSize1, dataSize2);
 
     unsigned char *valuePtr1 = new unsigned char[dataSize1];
     cAttr->getValue(dType1, valuePtr1, dataSize1);
 
-    const unsigned char *arr2ValuePtr = compAttr->pData()->data();
+    const unsigned char *arr2ValuePtr = compAttr->data()->data();
 
     ASSERT_EQ(std::memcmp(valuePtr1, arr2ValuePtr, dataSize1), 0);
 
-    ASSERT_NE(valuePtr1, compAttr->pData()->data());
+    ASSERT_NE(valuePtr1, compAttr->data()->data());
 
     delete[] valuePtr1;
     attrPtrs.emplace(compAttr);
     cAttr = arr1->pAttributeList->next(cAttr);
   }
-  ASSERT_EQ(attrPtrs.size(), arr2->pAttributeList()->size());
+  ASSERT_EQ(attrPtrs.size(), arr2->attributes()->size());
 }
 
 void CompareAttributes(NDArray *arr1, NDArray *arr2) {

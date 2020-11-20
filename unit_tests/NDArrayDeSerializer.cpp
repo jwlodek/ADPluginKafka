@@ -11,23 +11,27 @@
 #include <cstdlib>
 #include <vector>
 
-NDDataType_t GetND_DType(FB_Tables::DType arrType) {
+NDDataType_t GetND_DType(DType arrType) {
   switch (arrType) {
-  case FB_Tables::DType::DType_int8:
+  case DType::DType_int8:
     return NDInt8;
-  case FB_Tables::DType::DType_uint8:
+  case DType::DType_uint8:
     return NDUInt8;
-  case FB_Tables::DType::DType_int16:
+  case DType::DType_int16:
     return NDInt16;
-  case FB_Tables::DType::DType_uint16:
+  case DType::DType_uint16:
     return NDUInt16;
-  case FB_Tables::DType::DType_int32:
+  case DType::DType_int32:
     return NDInt32;
-  case FB_Tables::DType::DType_uint32:
+  case DType::DType_uint32:
     return NDUInt32;
-  case FB_Tables::DType::DType_float32:
+  case DType::DType_int64:
+    return NDInt64;
+  case DType::DType_uint64:
+    return NDUInt64;
+  case DType::DType_float32:
     return NDFloat32;
-  case FB_Tables::DType::DType_float64:
+  case DType::DType_float64:
     return NDFloat64;
   default:
     assert(false);
@@ -35,25 +39,29 @@ NDDataType_t GetND_DType(FB_Tables::DType arrType) {
   return NDInt8;
 }
 
-NDAttrDataType_t GetND_AttrDType(FB_Tables::DType attrType) {
+NDAttrDataType_t GetND_AttrDType(DType attrType) {
   switch (attrType) {
-  case FB_Tables::DType::DType_int8:
+  case DType::DType_int8:
     return NDAttrInt8;
-  case FB_Tables::DType::DType_uint8:
+  case DType::DType_uint8:
     return NDAttrUInt8;
-  case FB_Tables::DType::DType_int16:
+  case DType::DType_int16:
     return NDAttrInt16;
-  case FB_Tables::DType::DType_uint16:
+  case DType::DType_uint16:
     return NDAttrUInt16;
-  case FB_Tables::DType::DType_int32:
+  case DType::DType_int32:
     return NDAttrInt32;
-  case FB_Tables::DType::DType_uint32:
+  case DType::DType_uint32:
     return NDAttrUInt32;
-  case FB_Tables::DType::DType_float32:
+  case DType::DType_int64:
+    return NDAttrInt64;
+  case DType::DType_uint64:
+    return NDAttrUInt64;
+  case DType::DType_float32:
     return NDAttrFloat32;
-  case FB_Tables::DType::DType_float64:
+  case DType::DType_float64:
     return NDAttrFloat64;
-  case FB_Tables::DType::DType_c_string:
+  case DType::DType_c_string:
     return NDAttrString;
   default:
     assert(false);
@@ -61,25 +69,29 @@ NDAttrDataType_t GetND_AttrDType(FB_Tables::DType attrType) {
   return NDAttrInt8;
 }
 
-size_t GetTypeSize(FB_Tables::DType attrType) {
+size_t GetTypeSize(DType attrType) {
   switch (attrType) {
-  case FB_Tables::DType::DType_int8:
+  case DType::DType_int8:
     return 1;
-  case FB_Tables::DType::DType_uint8:
+  case DType::DType_uint8:
     return 1;
-  case FB_Tables::DType::DType_int16:
+  case DType::DType_int16:
     return 2;
-  case FB_Tables::DType::DType_uint16:
+  case DType::DType_uint16:
     return 2;
-  case FB_Tables::DType::DType_int32:
+  case DType::DType_int32:
     return 4;
-  case FB_Tables::DType::DType_uint32:
+  case DType::DType_uint32:
     return 4;
-  case FB_Tables::DType::DType_float32:
-    return 4;
-  case FB_Tables::DType::DType_float64:
+  case DType::DType_int64:
     return 8;
-  case FB_Tables::DType::DType_c_string:
+  case DType::DType_uint64:
+    return 8;
+  case DType::DType_float32:
+    return 4;
+  case DType::DType_float64:
+    return 8;
+  case DType::DType_c_string:
     return 1;
   default:
     assert(false);
@@ -87,37 +99,40 @@ size_t GetTypeSize(FB_Tables::DType attrType) {
   return 1;
 }
 
+epicsTimeStamp nSecToEpicsTimestamp(std::uint64_t nSec) {
+  const auto TimeDiffUNIXtoEPICSepoch = 631152000L;
+  const auto NSecMultiplier = 1000000000L;
+  return epicsTimeStamp{static_cast<epicsUInt32>(nSec / NSecMultiplier - TimeDiffUNIXtoEPICSepoch), static_cast<epicsUInt32>(nSec % NSecMultiplier)};
+}
+
 void DeSerializeData(NDArrayPool *pNDArrayPool, const unsigned char *bufferPtr,
                      NDArray *&pArray) {
-  auto recvArr = FB_Tables::GetNDArray(bufferPtr);
+  auto recvArr = GetADArray(bufferPtr);
   int id = recvArr->id();
-  double timeStamp = recvArr->timeStamp();
-  int EPICSsecPastEpoch = recvArr->epicsTS()->secPastEpoch();
-  int nsec = recvArr->epicsTS()->nsec();
-  std::vector<size_t> dims(recvArr->dims()->begin(), recvArr->dims()->end());
-  NDDataType_t dataType = GetND_DType(recvArr->dataType());
-  const void *pData = reinterpret_cast<const void *>(recvArr->pData()->Data());
-  int pData_size = recvArr->pData()->size();
+  std::uint64_t Timestamp = recvArr->timestamp();
+  std::vector<size_t> dims(recvArr->dimensions()->begin(), recvArr->dimensions()->end());
+  NDDataType_t dataType = GetND_DType(recvArr->data_type());
+  const void *pData = reinterpret_cast<const void *>(recvArr->data()->Data());
+  int pData_size = recvArr->data()->size();
 
   pArray = pNDArrayPool->alloc(static_cast<int>(dims.size()), dims.data(),
                                dataType, 0, nullptr);
 
   NDAttributeList *attrPtr = pArray->pAttributeList;
   attrPtr->clear();
-  for (int i = 0; i < recvArr->pAttributeList()->size(); i++) {
-    auto cAttr = recvArr->pAttributeList()->Get(i);
+  for (int i = 0; i < recvArr->attributes()->size(); i++) {
+    auto cAttr = recvArr->attributes()->Get(i);
     attrPtr->add(
-        new NDAttribute(cAttr->pName()->c_str(), cAttr->pDescription()->c_str(),
-                        NDAttrSourceDriver, cAttr->pSource()->c_str(),
-                        GetND_AttrDType(cAttr->dataType()),
+        new NDAttribute(cAttr->name()->c_str(), cAttr->description()->c_str(),
+                        NDAttrSourceDriver, cAttr->source()->c_str(),
+                        GetND_AttrDType(cAttr->data_type()),
                         reinterpret_cast<void *>(const_cast<std::uint8_t *>(
-                            cAttr->pData()->Data()))));
+                            cAttr->data()->Data()))));
   }
 
   std::memcpy(pArray->pData, pData, pData_size);
 
   pArray->uniqueId = id;
-  pArray->timeStamp = timeStamp;
-  pArray->epicsTS.secPastEpoch = EPICSsecPastEpoch;
-  pArray->epicsTS.nsec = nsec;
+  pArray->timeStamp = Timestamp / 1e9 - 631152000L;
+  pArray->epicsTS = nSecToEpicsTimestamp(Timestamp);
 }

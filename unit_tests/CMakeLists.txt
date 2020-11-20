@@ -53,7 +53,7 @@ set(Common_INC
     flatbuffers/flatbuffers.h
     json/json.h
     flatbuffers/stl_emulation.h
-    NDArray_schema_generated.h
+    ADArray_schema_generated.h
     ParamUtility.h
 )
 
@@ -107,7 +107,7 @@ target_include_directories(unit_tests PRIVATE "../ADPluginKafkaApp/src/")
 
 target_link_libraries(unit_tests gtest gmock_main epics Plugin)
 
-get_filename_component(TEST_DATA_PATH "someNDArray.data" DIRECTORY)
+get_filename_component(TEST_DATA_PATH "someADArray.data" DIRECTORY)
 target_compile_definitions(unit_tests
     PRIVATE TEST_DATA_PATH="${CMAKE_CURRENT_SOURCE_DIR}/${TEST_DATA_PATH}/")
 
