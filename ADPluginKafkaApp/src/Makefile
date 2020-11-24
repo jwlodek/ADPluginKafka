@@ -8,13 +8,19 @@ INC += KafkaPlugin.h
 INC += NDArraySerializer.h
 INC += KafkaProducer.h
 INC += ParamUtility.h
-INC += json.h
-INC += NDArray_schema_generated.h
+INC += TimeUtility.h
+INC += json/json.h
+INC += json/json-forwards.h
+INC += ADArray_schema_generated.h
+INC += flatbuffers/base.h
+INC += flatbuffers/flatbuffers.h
+INC += flatbuffers/stl_emulation.h
 LIBRARY_IOC += ADPluginKafka
 LIB_SRCS += KafkaPlugin.cpp
 LIB_SRCS += KafkaProducer.cpp
 LIB_SRCS += NDArraySerializer.cpp
-LIB_SRCS += jsoncpp.cpp
+LIB_SRCS += json/jsoncpp.cpp
+LIB_SRCS += TimeUtility.cpp
 
 DBD += ADPluginKafka.dbd
 
