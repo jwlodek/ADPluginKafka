@@ -13,6 +13,7 @@
 #include <asynDriver.h>
 #include <ciso646>
 #include <epicsExport.h>
+#include <string.h>
 
 #include "KafkaPlugin.h"
 
@@ -49,20 +50,16 @@ asynStatus KafkaPlugin::writeOctet(asynUser *pasynUser, const char *value,
                                    size_t nChars, size_t *nActual) {
   int addr = 0;
   int function{pasynUser->reason};
-  asynStatus status{asynSuccess};
   const char *functionName = "writeOctet";
 
-  status = getAddress(pasynUser, &addr);
+  asynStatus status = getAddress(pasynUser, &addr);
   if (status != asynSuccess) {
     return (status);
   }
 
-  /* Set the parameter in the parameter library. */
-  setStringParam(addr, function, const_cast<char *>(value));
-
-  if (ParamRegistrar.write<std::string>(function, {value, nChars})) {
-  } else { // Handle non string parameters?
-      NDPluginDriver::writeOctet(pasynUser, value, nChars, nActual);
+  if (ParamRegistrar.write<std::string>(function, {value, nChars}) or NDPluginDriver::writeOctet(pasynUser, value, nChars, nActual) == asynSuccess) {
+    /* Set the parameter in the parameter library. */
+    setStringParam(addr, function, const_cast<char *>(value));
   }
 
   // Do callbacks so higher layers see any changes
@@ -79,6 +76,39 @@ asynStatus KafkaPlugin::writeOctet(asynUser *pasynUser, const char *value,
 
   // We are assuming that we wrote as many characters as we received
   *nActual = nChars;
+  return status;
+}
+
+asynStatus KafkaPlugin::readOctet(asynUser *pasynUser, char *value, size_t maxChars,
+                     size_t *nActual, int *eomReason) {
+  int function;
+  const char *paramName;
+  int addr;
+  epicsTimeStamp timeStamp; getTimeStamp(&timeStamp);
+  static const char *functionName = "readOctet";
+
+  asynStatus status = parseAsynUser(pasynUser, &function, &addr, &paramName);
+  if (status != asynSuccess) return status;
+
+  std::string TempString;
+  if (ParamRegistrar.read<std::string>(function, TempString)) {
+    strncpy(value, TempString.c_str(), TempString.size() + 1);
+  } else {
+    status = asynError;
+  }
+
+  /* Set the timestamp */
+  pasynUser->timestamp = timeStamp;
+  if (status)
+    epicsSnprintf(pasynUser->errorMessage, pasynUser->errorMessageSize,
+                  "%s:%s: status=%d, function=%d, name=%s, value=%s",
+                  driverName, functionName, status, function, paramName, value);
+  else
+    asynPrint(pasynUser, ASYN_TRACEIO_DRIVER,
+              "%s:%s: function=%d, name=%s, value=%s\n",
+              driverName, functionName, function, paramName, value);
+  if (eomReason) *eomReason = ASYN_EOM_END;
+  *nActual = strlen(value)+1;
   return status;
 }
 

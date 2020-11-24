@@ -81,7 +81,7 @@ public:
    * This member function will throw away packets if the Kafka queue is full!
    * @param[in] pArray The NDArray from the callback.
    */
-  void processCallbacks(NDArray *pArray);
+  void processCallbacks(NDArray *pArray) override;
 
   /** @brief Used to set the string parameters of the Kafka producer.
    * If a configuration string is updated, the Kafka prdoucer will be immediatly
@@ -97,7 +97,10 @@ public:
    * value.
    */
   asynStatus writeOctet(asynUser *pasynUser, const char *value, size_t nChars,
-                        size_t *nActual);
+                        size_t *nActual) override;
+
+  asynStatus readOctet(asynUser *pasynUser, char *value, size_t maxChars,
+                       size_t *nActual, int *eomReason) override;
 
   /** @brief Used to set integer paramters of the plugin.
    * @param[in] pasynUser pasynUser structure that encodes the reason and
@@ -106,7 +109,7 @@ public:
    * @return asynStatus value corresponding to the success of setting a new
    * value.
    */
-  asynStatus writeInt32(asynUser *pasynUser, epicsInt32 value);
+  asynStatus writeInt32(asynUser *pasynUser, epicsInt32 value) override;
 
 protected:
   /** @brief Interrupt mask passed to NDPluginDriver.

@@ -36,7 +36,7 @@ public:
       if (ParamPtr == nullptr) {
         return false;
       }
-      ParamPtr->readValue(Value);
+      Value = ParamPtr->readValue();
     } catch (std::out_of_range const &) {
       return false;
     }
