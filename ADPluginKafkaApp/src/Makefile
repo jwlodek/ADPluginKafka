@@ -27,6 +27,9 @@ DBD += ADPluginKafka.dbd
 LIB_LIBS += NDPlugin
 LIB_LIBS += rdkafka++ rdkafka
 
+rdkafka_DIR = ${RDKAFKA}/lib
+rdkafka++_DIR = ${RDKAFKA}/lib
+
 USR_CXXFLAGS += -I${AREA_DETECTOR}/ADCore/include
 USR_CXXFLAGS += -std=c++11
 

@@ -24,8 +24,8 @@ PROD_SRCS_vxWorks += $(PROD_NAME)_registerRecordDeviceDriver.cpp
 
 PROD_LIBS += ADPluginKafka
 PROD_LIBS += simDetector
-PROD_LIBS += rdkafka++
-PROD_LIBS += rdkafka
+# PROD_LIBS += rdkafka++
+# PROD_LIBS += rdkafka
 PROD_LIBS_WIN32 += ssleay32 libeay32
 PROD_SYS_LIBS_Linux += ssl crypto
 PROD_SYS_LIBS_Linux += sasl2
