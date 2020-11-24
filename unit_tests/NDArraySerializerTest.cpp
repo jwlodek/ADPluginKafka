@@ -66,7 +66,7 @@ public:
 };
 
 TEST_F(Serializer, SerializeTest) {
-  NDArraySerializer ser;
+  NDArraySerializer ser("Some name");
   std::vector<size_t> numAttr = {0, 1, 10};
   std::vector<size_t> numElements = {1, 10, 50};
   std::vector<NDDataType_t> dataTypes = {NDUInt8,   NDInt8,   NDUInt16,
@@ -81,7 +81,7 @@ TEST_F(Serializer, SerializeTest) {
           sendArr = arrGen->GenerateNDArray(nAttr, nElem, nDim, dType);
           unsigned char *bufferPtr = nullptr;
           size_t bufferSize;
-          ser.SerializeData(*sendArr, bufferPtr, bufferSize, "SomeSourceName");
+          ser.SerializeData(*sendArr, bufferPtr, bufferSize);
           auto recvArr = GetADArray(bufferPtr);
           CompareDataTypes(sendArr, recvArr);
           CompareSizeAndDims(sendArr, recvArr);
@@ -138,7 +138,7 @@ TEST_F(DeSerializer, FileContentTest) {
 }
 
 TEST_F(Serializer, SerializeDeserializeTest) {
-  NDArraySerializer ser;
+  NDArraySerializer ser("some name");
   std::vector<size_t> numAttr = {0, 1, 10};
   std::vector<size_t> numElements = {1, 10, 50};
   std::vector<NDDataType_t> dataTypes = {NDUInt8,   NDInt8,   NDUInt16,
@@ -154,7 +154,7 @@ TEST_F(Serializer, SerializeDeserializeTest) {
           sendArr = arrGen->GenerateNDArray(nAttr, nElem, nDim, dType);
           unsigned char *bufferPtr = nullptr;
           size_t bufferSize;
-          ser.SerializeData(*sendArr, bufferPtr, bufferSize, "SomeSourceName");
+          ser.SerializeData(*sendArr, bufferPtr, bufferSize);
           DeSerializeData(recvPool, bufferPtr, recvArr);
           CompareDataTypes(sendArr, recvArr);
           CompareSizeAndDims(sendArr, recvArr);

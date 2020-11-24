@@ -15,6 +15,8 @@
 #include "ParamUtility.h"
 #include <NDPluginDriver.h>
 #include <map>
+#include "Parameter.h"
+#include "ParameterHandler.h"
 
 using namespace KafkaInterface;
 /** @brief areaDetector plugin that produces Kafka messages and sends them to a
@@ -123,10 +125,8 @@ protected:
   /// the broker.
   KafkaProducer producer;
 
-  std::string SourceName;
-
   /// @brief The class instance used to serialize NDArray data.
-  NDArraySerializer serializer;
+  NDArraySerializer Serializer;
 
   /// @brief Used to keep track of the PV:s made available by this driver.
   enum PV {
@@ -146,4 +146,9 @@ protected:
       PV_param("KAFKA_STATS_INT_MS", asynParamInt32),   // stats_time
       PV_param("KAFKA_QUEUE_SIZE", asynParamInt32),     // queue_size
   };
+
+  Parameter<std::string> SourceName{"SOURCE_NAME", [&](std::string NewValue){return Serializer.setSourceName(NewValue);}, [&]() {return Serializer.getSourceName();}};
+  Parameter<std::string> KafkaTopic{"KAFKA_TOPIC", [&](std::string NewValue){return producer.SetTopic(NewValue);}, [&]() {return producer.GetTopic();}};
+  Parameter<std::string> KafkaBroker{"KAFKA_BROKER_ADDRESS", [&](std::string NewValue){return producer.SetBrokerAddr(NewValue);}, [&]() {return producer.GetBrokerAddr();}};
+  ParameterHandler ParamRegistrar{this};
 };

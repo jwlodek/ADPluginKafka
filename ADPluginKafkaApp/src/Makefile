@@ -9,6 +9,8 @@ INC += NDArraySerializer.h
 INC += KafkaProducer.h
 INC += ParamUtility.h
 INC += TimeUtility.h
+INC += Parameter.h
+INC += ParameterHandler.h
 INC += json/json.h
 INC += json/json-forwards.h
 INC += ADArray_schema_generated.h
@@ -21,6 +23,8 @@ LIB_SRCS += KafkaProducer.cpp
 LIB_SRCS += NDArraySerializer.cpp
 LIB_SRCS += jsoncpp.cpp
 LIB_SRCS += TimeUtility.cpp
+LIB_SRCS += Parameter.cpp
+LIB_SRCS += ParameterHandler.cpp
 
 DBD += ADPluginKafka.dbd
 

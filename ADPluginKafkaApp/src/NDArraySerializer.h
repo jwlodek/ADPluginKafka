@@ -29,7 +29,7 @@ public:
    * if the data does
    * not fit.
    */
-  explicit NDArraySerializer(const flatbuffers::uoffset_t bufferSize = 1048576);
+  explicit NDArraySerializer(std::string SourceName, const flatbuffers::uoffset_t bufferSize = 1048576);
 
   /** @brief Serializes data held in the input NDArray.
    * Note that the returned pointer is only valid until next time
@@ -41,7 +41,10 @@ public:
    * @param[out] bufferSize Size of serialized data in bytes.
    */
   void SerializeData(NDArray &pArray, unsigned char *&bufferPtr,
-                     size_t &bufferSize, std::string const &SourceName);
+                     size_t &bufferSize);
+
+  bool setSourceName(std::string NewSourceName);
+  std::string getSourceName();
 
 protected:
   /** @brief Used to convert from areaDetector data type to flatbuffer data
@@ -86,6 +89,8 @@ protected:
   static NDAttrDataType_t GetND_AttrDType(DType attrType);
 
 private:
+  std::string SourceName;
+
   /// @brief The flatbuffer builder which serializes the data.
   flatbuffers::FlatBufferBuilder builder;
 };

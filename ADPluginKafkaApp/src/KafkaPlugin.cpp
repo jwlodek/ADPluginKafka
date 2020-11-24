@@ -32,7 +32,7 @@ void KafkaPlugin::processCallbacks(NDArray *pArray) {
   unsigned char *bufferPtr;
   size_t bufferSize;
 
-  serializer.SerializeData(*pArray, bufferPtr, bufferSize, SourceName);
+  Serializer.SerializeData(*pArray, bufferPtr, bufferSize);
   this->unlock();
   bool addToQueueSuccess = producer.SendKafkaPacket(bufferPtr, bufferSize, epicsTimeToTimePoint(pArray->epicsTS));
   this->lock();
@@ -60,14 +60,8 @@ asynStatus KafkaPlugin::writeOctet(asynUser *pasynUser, const char *value,
   /* Set the parameter in the parameter library. */
   setStringParam(addr, function, const_cast<char *>(value));
 
-  std::string tempStr{value, nChars};
-  if (function == *paramsList.at(PV::kafka_addr).index) {
-    producer.SetBrokerAddr(tempStr);
-  } else if (function == *paramsList.at(PV::kafka_topic).index) {
-    producer.SetTopic(tempStr);
-  } else if (function == *paramsList.at(PV::source_name).index) {
-    SourceName = tempStr;
-  } else if (function < MIN_PARAM_INDEX) {
+  if (ParamRegistrar.write<std::string>(function, {value, nChars})) {
+  } else { // Handle non string parameters?
       NDPluginDriver::writeOctet(pasynUser, value, nChars, nActual);
   }
 
@@ -130,7 +124,7 @@ KafkaPlugin::KafkaPlugin(const char *portName, int queueSize,
     : NDPluginDriver(portName, queueSize, blockingCallbacks, NDArrayPort,
                      NDArrayAddr, 1, 2, maxMemory, intMask, intMask, 0, 1,
                      priority, stackSize, 1),
-      producer(brokerAddress, brokerTopic), SourceName(sourceName) {
+      producer(brokerAddress, brokerTopic), Serializer(sourceName) {
 
   MIN_PARAM_INDEX = InitPvParams(this, paramsList);
 
@@ -140,12 +134,15 @@ KafkaPlugin::KafkaPlugin(const char *portName, int queueSize,
   producer.StartThread();
 
   setStringParam(NDPluginDriverPluginType, "KafkaPlugin");
-  setParam(this, paramsList.at(PV::kafka_addr), brokerAddress);
-  setParam(this, paramsList.at(PV::kafka_topic), brokerTopic);
-  setParam(this, paramsList.at(PV::source_name), sourceName);
-  setParam(this, paramsList.at(PV::stats_time), producer.GetStatsTimeMS());
-  setParam(this, paramsList.at(PV::queue_size),
-           producer.GetMessageQueueLength());
+//  setParam(this, paramsList.at(PV::kafka_addr), brokerAddress);
+//  setParam(this, paramsList.at(PV::kafka_topic), brokerTopic);
+//  setParam(this, paramsList.at(PV::source_name), sourceName);
+//  setParam(this, paramsList.at(PV::stats_time), producer.GetStatsTimeMS());
+//  setParam(this, paramsList.at(PV::queue_size),
+//           producer.GetMessageQueueLength());
+  ParamRegistrar.registerParameter(&SourceName);
+  ParamRegistrar.registerParameter(&KafkaTopic);
+  ParamRegistrar.registerParameter(&KafkaBroker);
 
   // Disable ArrayCallbacks.
   // This plugin currently does not do array callbacks, so make the setting

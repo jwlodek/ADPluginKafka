@@ -13,14 +13,24 @@
 #include <cstdint>
 #include "TimeUtility.h"
 
-NDArraySerializer::NDArraySerializer(const flatbuffers::uoffset_t bufferSize)
-    : builder(bufferSize) {}
+NDArraySerializer::NDArraySerializer(std::string SourceName, const flatbuffers::uoffset_t bufferSize)
+    : SourceName(SourceName), builder(bufferSize) {}
 
+bool NDArraySerializer::setSourceName(std::string NewSourceName) {
+  if (NewSourceName.empty()) {
+    return false;
+  }
+  SourceName = std::move(NewSourceName);
+  return true;
+}
 
+std::string NDArraySerializer::getSourceName() {
+  return SourceName;
+}
 
 void NDArraySerializer::SerializeData(NDArray &pArray,
                                       unsigned char *&bufferPtr,
-                                      size_t &bufferSize, std::string const &SourceName) {
+                                      size_t &bufferSize) {
   NDArrayInfo ndInfo{};
   pArray.getInfo(&ndInfo);
 
