@@ -111,18 +111,13 @@ public:
    */
   asynStatus writeInt32(asynUser *pasynUser, epicsInt32 value) override;
 
+  asynStatus writeInt64(asynUser *pasynUser, epicsInt64 value) override;
+
 protected:
   /** @brief Interrupt mask passed to NDPluginDriver.
-   * @todo What does the interrupt mask actually do?
    */
-  static const int intMask{asynInt32ArrayMask | asynOctetMask |
-                           asynGenericPointerMask};
+  static const int intMask{asynInt32Mask | asynInt64Mask | asynOctetMask};
 
-  /** @brief Used to keep track of the lowest PV index in order to know which
-   * write events should
-   * be passed to the parent class.
-   */
-  int MIN_PARAM_INDEX;
 
   /// @brief The kafka producer which is used to send serialized NDArray data to
   /// the broker.
@@ -131,27 +126,7 @@ protected:
   /// @brief The class instance used to serialize NDArray data.
   NDArraySerializer Serializer;
 
-  /// @brief Used to keep track of the PV:s made available by this driver.
-  enum PV {
-    kafka_addr,
-    kafka_topic,
-    source_name,
-    stats_time,
-    queue_size,
-    count,
-  };
-
-  /// @brief The list of PV:s created by the driver and their definition.
-  std::vector<PV_param> paramsList = {
-      PV_param("KAFKA_BROKER_ADDRESS", asynParamOctet), // kafka_addr
-      PV_param("KAFKA_TOPIC", asynParamOctet),          // kafka_topic
-      PV_param("SOURCE_NAME", asynParamOctet),          // Flatbuffer source name
-      PV_param("KAFKA_STATS_INT_MS", asynParamInt32),   // stats_time
-      PV_param("KAFKA_QUEUE_SIZE", asynParamInt32),     // queue_size
-  };
 
   Parameter<std::string> SourceName{"SOURCE_NAME", [&](std::string NewValue){return Serializer.setSourceName(NewValue);}, [&]() {return Serializer.getSourceName();}};
-  Parameter<std::string> KafkaTopic{"KAFKA_TOPIC", [&](std::string NewValue){return producer.SetTopic(NewValue);}, [&]() {return producer.GetTopic();}};
-  Parameter<std::string> KafkaBroker{"KAFKA_BROKER_ADDRESS", [&](std::string NewValue){return producer.SetBrokerAddr(NewValue);}, [&]() {return producer.GetBrokerAddr();}};
   ParameterHandler ParamRegistrar{this};
 };

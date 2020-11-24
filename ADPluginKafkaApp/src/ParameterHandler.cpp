@@ -5,17 +5,19 @@
 #include "ParameterHandler.h"
 #include "Parameter.h"
 #include <algorithm>
+#include <map>
+#include <typeinfo>
 
 ParameterHandler::ParameterHandler(asynPortDriver *DriverPtr) : Driver(DriverPtr) {
 }
 
 void ParameterHandler::registerParameter(ParameterBase *Param) {
-  asynParamType ParameterType;
-  if (dynamic_cast<Parameter<std::string>*>(Param)) {
-    ParameterType = asynParamOctet;
-  } else {
-    assert(false);
-  }
+  std::map<std::size_t , asynParamType> TypeMap{
+    {typeid(Parameter<std::string>).hash_code(), asynParamOctet},
+    {typeid(Parameter<int64_t>).hash_code(), asynParamInt64},
+    {typeid(Parameter<int32_t>).hash_code(), asynParamInt32},
+    };
+  asynParamType ParameterType{TypeMap.at(typeid(*Param).hash_code())};
   int ParameterIndex;
   Driver->createParam(Param->getParameterName().c_str(), ParameterType, &ParameterIndex);
   KnownParameters[ParameterIndex] = Param;
@@ -33,9 +35,10 @@ void ParameterHandler::updateDbValue(ParameterBase *ParamPtr) {
     return;
   }
   auto UsedIndex = FoundParameter->first;
-  if (typeid(*ParamPtr) == typeid(Parameter<std::string>)) {
-    Driver->setStringParam(UsedIndex, dynamic_cast<Parameter<std::string>*>(ParamPtr)->readValue());
-  } else {
-    assert(false);
-  }
+  std::map<std::size_t, std::function<void()>> CallMap{
+    {typeid(Parameter<std::string>).hash_code(), [&](){Driver->setStringParam(UsedIndex, dynamic_cast<Parameter<std::string>*>(ParamPtr)->readValue());}},
+    {typeid(Parameter<int64_t>).hash_code(), [&](){Driver->setInteger64Param(UsedIndex, dynamic_cast<Parameter<int64_t>*>(ParamPtr)->readValue());}},
+    {typeid(Parameter<int32_t>).hash_code(), [&](){Driver->setIntegerParam(UsedIndex, dynamic_cast<Parameter<int32_t>*>(ParamPtr)->readValue());}},
+  };
+  CallMap.at(typeid(*ParamPtr).hash_code())();
 }

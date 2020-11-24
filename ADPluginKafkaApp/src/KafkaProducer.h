@@ -17,6 +17,8 @@
 #include <vector>
 #include "TimeUtility.h"
 #include <chrono>
+#include "Parameter.h"
+#include "ParameterHandler.h"
 
 /** @brief The KafkaInterface namespace is used primarily to seperate
  * KafkaInterface::KafkaConsumer
@@ -59,7 +61,7 @@ public:
    * buffer.
    */
   KafkaProducer(std::string const &broker, std::string topic,
-                int queueSize = 10);
+                ParameterHandler *ParamRegistrar, int queueSize = 10);
 
   /** @brief Simple consumer constructor which will not connect to a broker.
    * @note After calling the constructor, the rest of the instructions given in
@@ -79,28 +81,6 @@ public:
    * take some time. Will attempt to gracefully shut down the Kafka connection.
    */
   ~KafkaProducer();
-
-  /** @brief Returns the PV definitions used by the KafkaInterface::Producer.
-   * KafkaInterface::KafkaProducer can not initialize its own PV:s as the driver
-   * needs to know:
-   * * How many PVs will be used in order to allocate enough memory for them.
-   * * The lowest index of the PVs that the driver is responsible for in order
-   * to determine which
-   * PV indexes has to be handled by a parent class.
-   * @return The definitions of the PVs which values are modified by this class.
-   * Note that the
-   * location of the index is kept track of by a std::shared_ptr.
-   */
-  virtual std::vector<PV_param> &GetParams();
-
-  /** @brief Used to register the param callback class.
-   * @note This member function must be called after the relevant PV:s have been
-   * initilaized. See
-   * the class documentation for more information.
-   * Will set the maximum message size PV when called.
-   * @param ptr Pointer to driver class instance.
-   */
-  virtual void RegisterParamCallbackClass(asynNDArrayDriver *ptr);
 
   /** @brief Set topic to consume messages from.
    * Will try to set a new topic and if successfull; will attempt to drop the
@@ -209,7 +189,9 @@ public:
    * attempt should be
    * abandoned.
    */
-  virtual void AttemptFlushAtReconnect(bool flush, int timeout_ms);
+  virtual void AttemptFlushAtReconnect(bool flush);
+
+  virtual void FlushTimeout(int32_t TimeOutMS);
 
   /** @brief Starts the thread that keeps track of the status of the Kafka
    * connection.
@@ -232,7 +214,7 @@ protected:
   bool errorState{
       false}; /// @brief Set to true if librdkafka could not be initialized.
   bool doFlush{true}; /// @brief Should a flush attempt be made at disconnect?
-  int flushTimeout{500}; /// @brief What is the timeout of the flush attempt?
+  int32_t flushTimeout{500}; /// @brief What is the timeout of the flush attempt?
 
   size_t maxMessageSize{
       10000000}; /// @brief Stored maximum message size in bytes.
@@ -265,7 +247,7 @@ protected:
     CONNECTING = 1,
     DISCONNECTED = 2,
     ERROR = 3,
-  };
+  } CurrentStatus = ConStat::DISCONNECTED;
 
   /** @brief Sets the correct status PV:s.
    * Will call KafkaPlugin::DestroyKafkaConnection() if the status id is equal
@@ -336,6 +318,9 @@ protected:
   std::string BrokerAddr; /// @brief Stores the current broker address used by
                           /// the consumer.
 
+  std::string ConnectionMessage;
+  int32_t UnsentMessages{0};
+
   /// @brief The root and broker json objects extracted from a json string.
   Json::Value root, brokers;
   Json::CharReaderBuilder builder; /// @brief Parses std:string objects into a Json::value.
@@ -343,32 +328,19 @@ protected:
   /// @brief C++11 thread which periodically polls for connection stats.
   std::thread statusThread;
 
-  /** @brief The pointer to the actual driver class which instantiated this
-   * class. Required for
-   * updating PVs.
-   */
-  asynNDArrayDriver *paramCallback{nullptr};
-
   /// @brief Used to shut down the stats thread.
   std::atomic_bool runThread{false};
 
-  /// @brief Used to keep track of the PV:s made available by this driver.
-  enum PV {
-    con_status,
-    con_msg,
-    msgs_in_queue,
-    max_msg_size,
-    msg_buffer_size,
-    count,
-  };
-
-  /// @brief The list of PV:s created by the driver and their definition.
-  std::vector<PV_param> paramsList = {
-      PV_param("KAFKA_CONNECTION_STATUS", asynParamInt32),  // con_status
-      PV_param("KAFKA_CONNECTION_MESSAGE", asynParamOctet), // con_msg
-      PV_param("KAFKA_UNSENT_PACKETS", asynParamInt32),     // msgs_in_queue
-      PV_param("KAFKA_MAX_MSG_SIZE", asynParamInt32),       // max_msg_size
-      PV_param("KAFKA_MSG_BUFFER_SIZE", asynParamInt32),    // msg_buffer_size
-  };
+  Parameter<int32_t> ReconnectFlush{"KAFKA_RECONNECT_FLUSH", [&](int32_t Value){AttemptFlushAtReconnect(bool(Value)); return true;}, [&]() {return doFlush;}};
+  Parameter<int32_t> ReconnectFlushTime{"KAFKA_FLUSH_TIME", [&](int32_t Value){FlushTimeout(Value); return true;}, [&]() {return flushTimeout;}};
+  Parameter<int32_t> MsgBufferSize{"KAFKA_MSG_BUFFER_SIZE", [&](int32_t Value){return SetMessageBufferSizeKbytes(Value);}, [&]() {return GetMessageBufferSizeKbytes();}};
+  Parameter<int32_t> MaxMessageSize{"KAFKA_MAX_MSG_SIZE", [&](int32_t Value){return SetMaxMessageSize(Value);}, [&]() {return GetMaxMessageSize();}};
+  Parameter<int32_t> UnsentPackets{"KAFKA_UNSENT_PACKETS", [&](int32_t){return false;}, [&]() {return UnsentMessages;}};
+  Parameter<int32_t> KafkaStatus{"KAFKA_CONNECTION_STATUS", [&](int32_t){return false;}, [&]() {return int(CurrentStatus);}};
+  Parameter<std::string> KafkaMessage{"KAFKA_CONNECTION_MESSAGE", [&](std::string){return false;}, [&]() {return ConnectionMessage;}};
+  Parameter<std::string> KafkaTopic{"KAFKA_TOPIC", [&](std::string NewValue){return SetTopic(NewValue);}, [&]() {return GetTopic();}};
+  Parameter<std::string> KafkaBroker{"KAFKA_BROKER_ADDRESS", [&](std::string NewValue){return SetBrokerAddr(NewValue);}, [&]() {return GetBrokerAddr();}};
+  Parameter<int32_t> KafkaStatsInterval{"KAFKA_STATS_INT_MS", [&](int32_t NewValue){return SetStatsTimeMS(NewValue);}, [&]() {return GetStatsTimeMS();}};
+  Parameter<int32_t> KafkaQueueSize{"KAFKA_QUEUE_SIZE", [&](int32_t NewValue){return SetMessageQueueLength(NewValue);}, [&]() {return GetMessageQueueLength();}};
 };
 } // namespace KafkaInterface

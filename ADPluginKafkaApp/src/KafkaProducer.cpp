@@ -12,24 +12,34 @@
 
 namespace KafkaInterface {
 
-int KafkaProducer::GetNumberOfPVs() { return PV::count; }
-
 KafkaProducer::KafkaProducer(std::string const &broker, std::string topic,
+                             ParameterHandler *ParamRegistrar,
                              int queueSize)
     : msgQueueSize(queueSize),
       conf(RdKafka::Conf::create(RdKafka::Conf::CONF_GLOBAL)),
       tconf(RdKafka::Conf::create(RdKafka::Conf::CONF_TOPIC)),
       TopicName(std::move(topic)) {
-  KafkaProducer::InitRdKafka();
-  KafkaProducer::SetBrokerAddr(broker);
-  KafkaProducer::MakeConnection();
+  ParamRegistrar->registerParameter(&ReconnectFlush);
+  ParamRegistrar->registerParameter(&ReconnectFlushTime);
+  ParamRegistrar->registerParameter(&MsgBufferSize);
+  ParamRegistrar->registerParameter(&MaxMessageSize);
+  ParamRegistrar->registerParameter(&UnsentPackets);
+  ParamRegistrar->registerParameter(&KafkaStatus);
+  ParamRegistrar->registerParameter(&KafkaMessage);
+  ParamRegistrar->registerParameter(&KafkaTopic);
+  ParamRegistrar->registerParameter(&KafkaBroker);
+  ParamRegistrar->registerParameter(&KafkaStatsInterval);
+  ParamRegistrar->registerParameter(&KafkaQueueSize);
+  InitRdKafka();
+  SetBrokerAddr(broker);
+  MakeConnection();
 }
 
 KafkaProducer::KafkaProducer(int queueSize)
     : msgQueueSize(queueSize),
       conf(RdKafka::Conf::create(RdKafka::Conf::CONF_GLOBAL)),
       tconf(RdKafka::Conf::create(RdKafka::Conf::CONF_TOPIC)) {
-  KafkaProducer::InitRdKafka();
+  InitRdKafka();
 }
 
 KafkaProducer::~KafkaProducer() {
@@ -84,7 +94,6 @@ bool KafkaProducer::SetMaxMessageSize(size_t msgSize) {
     return false;
   }
   maxMessageSize = msgSize;
-  setParam(paramCallback, paramsList[PV::max_msg_size], int(msgSize));
   MakeConnection();
   return true;
 }
@@ -101,7 +110,6 @@ bool KafkaProducer::SetMessageBufferSizeKbytes(size_t msgBufferSize) {
     return false;
   }
   maxMessageBufferSizeKb = msgBufferSize;
-  setParam(paramCallback, paramsList[PV::msg_buffer_size], int(msgBufferSize));
   MakeConnection();
   return true;
 }
@@ -192,10 +200,11 @@ void KafkaProducer::event_cb(RdKafka::Event &event) {
 }
 
 void KafkaProducer::SetConStat(KafkaProducer::ConStat stat,
-                               std::string const &msg) {
-  // Should we add some storage functionality here?
-  setParam(paramCallback, paramsList.at(PV::con_status), int(stat));
-  setParam(paramCallback, paramsList.at(PV::con_msg), msg);
+                               std::string const &Msg) {
+  CurrentStatus = stat;
+  KafkaStatus.updateDbValue();
+  ConnectionMessage = Msg;
+  KafkaMessage.updateDbValue();
 }
 
 void KafkaProducer::ParseStatusString(std::string const &msg) {
@@ -223,13 +232,16 @@ void KafkaProducer::ParseStatusString(std::string const &msg) {
     }
     SetConStat(tempStat, statString);
   }
-  int unsentMessages = root["msg_cnt"].asInt();
-  setParam(paramCallback, paramsList.at(PV::msgs_in_queue), unsentMessages);
+  UnsentMessages = root["msg_cnt"].asInt();
+  UnsentPackets.updateDbValue();
 }
 
-void KafkaProducer::AttemptFlushAtReconnect(bool flush, int timeout_ms) {
+void KafkaProducer::AttemptFlushAtReconnect(bool flush) {
   doFlush = flush;
-  KafkaProducer::flushTimeout = timeout_ms;
+}
+
+void KafkaProducer::FlushTimeout(int32_t TimeOutMS) {
+  flushTimeout = TimeOutMS;
 }
 
 void KafkaProducer::InitRdKafka() {
@@ -348,13 +360,5 @@ bool KafkaProducer::MakeConnection() {
       }
   }
   return true;
-}
-
-std::vector<PV_param> &KafkaProducer::GetParams() { return paramsList; }
-
-void KafkaProducer::RegisterParamCallbackClass(asynNDArrayDriver *ptr) {
-  paramCallback = ptr;
-
-  setParam(paramCallback, paramsList[PV::max_msg_size], int(maxMessageSize));
 }
 } // namespace KafkaInterface
