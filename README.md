@@ -22,7 +22,7 @@ The steps shown here worked on the development machine but has been tested nowhe
 
 1. Copy the _ADPluginKafka_ directory to your _$(EPICS_MODULES_PATH)/areaDetector_ directory.
 2. Set the variable `SIMDET` in the file _ADPluginKafka/iocs/ADPluginKafkaIOC/configure/RELEASE_ to point to the location of _ADSimDetector_ in your EPICS installation.
-3. Modify the file _ADPluginKafka/configure/RELEASE.local_ such that `EPICS_MODULES_PATH` and `SUPPORT` points to the directory of you EPICS modules and `RDKAFKA` points to the directory where librdkafka is installed (usually something like `/usr/local/`).
+3. Modify the file _/ADPluginKafka/ADPluginKafkaApp/src/Makefile_ such that `RDKAFKA` points to the directory where librdkafka is installed (usually something like `/usr/local/`).
 4. Modify the files _Makefile_ and _start_epics_ in the _ADPluginKafka/iocs/ADPluginKafkaIOC/iocBoot/iocADPluginKafka_ directory to reflect the current platform.
 5. Change (`cd`) to the _ADPluginKafka_ directory and compile by running `make`.
 6. Modify the _ADPluginKafka/iocs/ADPluginKafkaIOC/iocBoot/iocADPluginKafka/st.cmd_ file to use the address of your Kafka broker.
