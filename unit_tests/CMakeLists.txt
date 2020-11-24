@@ -107,7 +107,7 @@ add_executable(unit_tests ${Test_SRC} ${Test_INC})
 target_include_directories(unit_tests PRIVATE "../ADPluginKafkaApp/src/")
 
 
-target_link_libraries(unit_tests gtest gmock_main epics Plugin)
+target_link_libraries(unit_tests gtest gmock_main gmock epics Plugin)
 
 get_filename_component(TEST_DATA_PATH "someADArray.data" DIRECTORY)
 target_compile_definitions(unit_tests

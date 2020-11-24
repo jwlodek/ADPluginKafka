@@ -16,6 +16,7 @@
 #include <thread>
 #include <vector>
 #include "TimeUtility.h"
+#include <chrono>
 
 /** @brief The KafkaInterface namespace is used primarily to seperate
  * KafkaInterface::KafkaConsumer
@@ -294,7 +295,7 @@ protected:
 
   /// @brief Sleep time between poll()-calls. See
   /// KafkaProducer::ThreadFunction().
-  const int sleepTime{50};
+  const std::chrono::milliseconds PollSleepTime{50};
 
   mutable std::mutex
       brokerMutex; /// @brief Prevents access to shared resources.

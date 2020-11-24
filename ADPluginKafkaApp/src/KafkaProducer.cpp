@@ -6,7 +6,6 @@
 
 #include "KafkaProducer.h"
 #include <cassert>
-#include <chrono>
 #include <ciso646>
 #include <cstdlib>
 #include <algorithm>
@@ -58,9 +57,8 @@ bool KafkaProducer::StartThread() {
 void KafkaProducer::ThreadFunction() {
   // Uses std::this_thread::sleep_for() as it can not know if a producer has been
   // allocated.
-  std::chrono::milliseconds sleepTime(KafkaProducer::sleepTime);
   while (runThread) {
-    std::this_thread::sleep_for(sleepTime);
+    std::this_thread::sleep_for(PollSleepTime);
     {
       std::lock_guard<std::mutex> lock(brokerMutex);
       if (Producer != nullptr) {
