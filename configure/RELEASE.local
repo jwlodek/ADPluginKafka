@@ -4,7 +4,6 @@
 
 #EPICS_MODULES_PATH := /opt/epics/modules
 #SUPPORT := ${EPICS_MODULES_PATH}
-#RDKAFKA := /usr/local/
 
 #ASYN := $(EPICS_MODULES_PATH)/asyn
 #AREA_DETECTOR := $(EPICS_MODULES_PATH)/areaDetector
