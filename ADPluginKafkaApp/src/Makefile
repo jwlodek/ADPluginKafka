@@ -19,7 +19,7 @@ LIBRARY_IOC += ADPluginKafka
 LIB_SRCS += KafkaPlugin.cpp
 LIB_SRCS += KafkaProducer.cpp
 LIB_SRCS += NDArraySerializer.cpp
-LIB_SRCS += json/jsoncpp.cpp
+LIB_SRCS += jsoncpp.cpp
 LIB_SRCS += TimeUtility.cpp
 
 DBD += ADPluginKafka.dbd
@@ -41,5 +41,5 @@ include $(TOP)/configure/RULES
 #----------------------------------------
 #  ADD EXTRA GNUMAKE RULES BELOW HERE
 
-$(COMMON_DIR)/NDArray_schema_generated.h : ../NDArray_schema.fbs $(FLATBUFFERS)/include/flatbuffers/flatbuffers.h
+$(COMMON_DIR)/ADArray_schema_generated.h : ../ADArray_schema.fbs $(FLATBUFFERS)/include/flatbuffers/flatbuffers.h
 	$(FLATBUFFERS)/bin/$(EPICS_HOST_ARCH)/flatc --cpp -o $(COMMON_DIR)/ $<

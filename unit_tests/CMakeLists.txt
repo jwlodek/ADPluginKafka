@@ -45,7 +45,7 @@ target_link_directories(epics INTERFACE ${EPICS_LIB_DIRS})
 target_link_libraries(epics INTERFACE NDPlugin ADBase asyn Com)
 
 set(Common_SRC
-    json/jsoncpp.cpp
+    jsoncpp.cpp
 )
 
 set(Common_INC
