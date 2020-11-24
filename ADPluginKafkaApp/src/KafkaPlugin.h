@@ -62,11 +62,13 @@ public:
    * @param[in] brokerTopic Topic from which the driver should consume messages.
    * Note that only
    * one topic can be specified.
+   * @param[in] sourceName String used as "source name" in the flatbuffer
+   * message sent to Kafka.
    */
   KafkaPlugin(const char *portName, int queueSize, int blockingCallbacks,
               const char *NDArrayPort, int NDArrayAddr, size_t maxMemory,
               int priority, int stackSize, const char *brokerAddress,
-              const char *brokerTopic);
+              const char *brokerTopic, const char *sourceName);
 
   /// @brief Destructor, currently empty.
   ~KafkaPlugin() = default;
@@ -121,6 +123,8 @@ protected:
   /// the broker.
   KafkaProducer producer;
 
+  std::string SourceName;
+
   /// @brief The class instance used to serialize NDArray data.
   NDArraySerializer serializer;
 
@@ -128,6 +132,7 @@ protected:
   enum PV {
     kafka_addr,
     kafka_topic,
+    source_name,
     stats_time,
     queue_size,
     count,
@@ -137,6 +142,7 @@ protected:
   std::vector<PV_param> paramsList = {
       PV_param("KAFKA_BROKER_ADDRESS", asynParamOctet), // kafka_addr
       PV_param("KAFKA_TOPIC", asynParamOctet),          // kafka_topic
+      PV_param("SOURCE_NAME", asynParamOctet),          // Flatbuffer source name
       PV_param("KAFKA_STATS_INT_MS", asynParamInt32),   // stats_time
       PV_param("KAFKA_QUEUE_SIZE", asynParamInt32),     // queue_size
   };

@@ -67,12 +67,14 @@ set(Plugin_SRC
   KafkaProducer.cpp
   KafkaPlugin.cpp
   NDArraySerializer.cpp
+  TimeUtility.cpp
 )
 
 set(Plugin_INC
   KafkaProducer.h
   KafkaPlugin.h
   NDArraySerializer.h
+  TimeUtility.h
 )
 
 list(TRANSFORM Plugin_SRC PREPEND "../ADPluginKafkaApp/src/")

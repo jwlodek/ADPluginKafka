@@ -15,6 +15,7 @@
 #include <mutex>
 #include <thread>
 #include <vector>
+#include "TimeUtility.h"
 
 /** @brief The KafkaInterface namespace is used primarily to seperate
  * KafkaInterface::KafkaConsumer
@@ -107,7 +108,7 @@ public:
    * @param topicName The new topic.
    * @return True on succes, false on failure.
    */
-  virtual bool SetTopic(std::string const &topicName);
+  virtual bool SetTopic(std::string const &NewTopicName);
 
   /** @brief Get the current topic name.
    * Will return the topic name stored by KafkaInterface::KafkaProducer.
@@ -222,7 +223,7 @@ public:
   /** @brief Sends the binary data stored in the buffer to the Kafka broker.
    * \todo Complete documentation.
    */
-  virtual bool SendKafkaPacket(const unsigned char *buffer, size_t buffer_size);
+  virtual bool SendKafkaPacket(const unsigned char *buffer, size_t buffer_size, time_point Timestamp);
 
   static int GetNumberOfPVs();
 
@@ -238,15 +239,6 @@ protected:
       500000};      /// @brief Message buffer size in kilo bytes.
   int msgQueueSize; /// @brief Stored maximum Kafka producer queue length.
 
-  /** @brief Helper function for cleanly shutting down a topic.
-   * Implements the flushing functionality.
-   */
-  virtual void ShutDownTopic();
-
-  /** @brief Helper function for shutting down and deallocating the producer.
-   * Also calls KafkaProducer::ShutDownTopic() if needed.
-   */
-  virtual void ShutDownProducer();
 
   /** @brief Callback member function used by the status and error handling
    * system of librdkafka.
@@ -329,11 +321,8 @@ protected:
   /// functions.
   std::string errstr;
 
-  /// @brief Pointer to Kafka topic in librdkafka.
-  RdKafka::Topic *topic{nullptr};
-
   /// @brief Pointer to Kafka producer in librdkafka.
-  RdKafka::Producer *producer{nullptr};
+  std::unique_ptr<RdKafka::Producer> Producer;
 
   /// @brief Stores the pointer to a librdkafka configruation object.
   std::unique_ptr<RdKafka::Conf> conf;
@@ -342,8 +331,8 @@ protected:
   std::unique_ptr<RdKafka::Conf> tconf;
 
   std::string
-      topicName; /// @brief Stores the current topic used by the consumer.
-  std::string brokerAddr; /// @brief Stores the current broker address used by
+      TopicName; /// @brief The current topic name used by the consumer.
+  std::string BrokerAddr; /// @brief Stores the current broker address used by
                           /// the consumer.
 
   /// @brief The root and broker json objects extracted from a json string.

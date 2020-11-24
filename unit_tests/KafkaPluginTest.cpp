@@ -31,7 +31,7 @@ class KafkaPluginStandIn : public KafkaPlugin {
 public:
   KafkaPluginStandIn()
       : KafkaPlugin(PortName().c_str(), 10, 1, "some_arr_port", 1, 0, 1, 1,
-                    usedBrokerAddr.c_str(), usedTopic.c_str()){};
+                    usedBrokerAddr.c_str(), usedTopic.c_str(), "some source name"){};
   using KafkaPlugin::producer;
   using KafkaPlugin::paramsList;
   using KafkaPlugin::PV;

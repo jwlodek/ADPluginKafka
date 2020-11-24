@@ -41,7 +41,7 @@ public:
    * @param[out] bufferSize Size of serialized data in bytes.
    */
   void SerializeData(NDArray &pArray, unsigned char *&bufferPtr,
-                     size_t &bufferSize);
+                     size_t &bufferSize, std::string const &SourceName);
 
 protected:
   /** @brief Used to convert from areaDetector data type to flatbuffer data
@@ -88,5 +88,4 @@ protected:
 private:
   /// @brief The flatbuffer builder which serializes the data.
   flatbuffers::FlatBufferBuilder builder;
-  std::string SourceName{"test_source_name"};
 };

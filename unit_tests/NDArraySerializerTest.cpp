@@ -81,7 +81,7 @@ TEST_F(Serializer, SerializeTest) {
           sendArr = arrGen->GenerateNDArray(nAttr, nElem, nDim, dType);
           unsigned char *bufferPtr = nullptr;
           size_t bufferSize;
-          ser.SerializeData(*sendArr, bufferPtr, bufferSize);
+          ser.SerializeData(*sendArr, bufferPtr, bufferSize, "SomeSourceName");
           auto recvArr = GetADArray(bufferPtr);
           CompareDataTypes(sendArr, recvArr);
           CompareSizeAndDims(sendArr, recvArr);
@@ -154,7 +154,7 @@ TEST_F(Serializer, SerializeDeserializeTest) {
           sendArr = arrGen->GenerateNDArray(nAttr, nElem, nDim, dType);
           unsigned char *bufferPtr = nullptr;
           size_t bufferSize;
-          ser.SerializeData(*sendArr, bufferPtr, bufferSize);
+          ser.SerializeData(*sendArr, bufferPtr, bufferSize, "SomeSourceName");
           DeSerializeData(recvPool, bufferPtr, recvArr);
           CompareDataTypes(sendArr, recvArr);
           CompareSizeAndDims(sendArr, recvArr);

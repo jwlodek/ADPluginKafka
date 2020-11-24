@@ -100,8 +100,8 @@ TEST_F(KafkaProducerEnv, InitTest) {
   ASSERT_TRUE(prod.SetStatsTimeMS(10));
   ASSERT_FALSE(prod.SetStatsTimeMS(0));
   unsigned char tempStr[] = "some";
-  ASSERT_FALSE(prod.SendKafkaPacket(tempStr, 4));
-  ASSERT_FALSE(prod.SendKafkaPacket(tempStr, 0));
+  ASSERT_FALSE(prod.SendKafkaPacket(tempStr, 4, time_point()));
+  ASSERT_FALSE(prod.SendKafkaPacket(tempStr, 0, time_point()));
 }
 
 TEST_F(KafkaProducerEnv, SetTopicAndConnectionTest1) {
@@ -118,14 +118,13 @@ TEST_F(KafkaProducerEnv, InitWithAddrAndTopic) {
   ASSERT_TRUE(prod.SetStatsTimeMS(10));
   ASSERT_FALSE(prod.SetStatsTimeMS(0));
   unsigned char tempStr[] = "some";
-  ASSERT_TRUE(prod.SendKafkaPacket(tempStr, 4));
-  ASSERT_FALSE(prod.SendKafkaPacket(tempStr, 0));
+  ASSERT_TRUE(prod.SendKafkaPacket(tempStr, 4, time_point()));
+  ASSERT_FALSE(prod.SendKafkaPacket(tempStr, 0, time_point()));
 }
 
 TEST_F(KafkaProducerEnv, ErrorStateTest) {
   KafkaProducerStandIn prod("some_addr", "some_topic");
   prod.errorState = true;
-  ASSERT_FALSE(prod.SetTopic("any_name"));
   ASSERT_FALSE(prod.SetTopic(""));
   ASSERT_FALSE(prod.SetBrokerAddr("any_name"));
   ASSERT_FALSE(prod.SetBrokerAddr(""));
@@ -134,8 +133,8 @@ TEST_F(KafkaProducerEnv, ErrorStateTest) {
   ASSERT_FALSE(prod.SetStatsTimeMS(10));
   ASSERT_FALSE(prod.SetStatsTimeMS(0));
   unsigned char tempStr[] = "some";
-  ASSERT_FALSE(prod.SendKafkaPacket(tempStr, 4));
-  ASSERT_FALSE(prod.SendKafkaPacket(tempStr, 0));
+  ASSERT_FALSE(prod.SendKafkaPacket(tempStr, 4, time_point()));
+  ASSERT_FALSE(prod.SendKafkaPacket(tempStr, 0, time_point()));
 }
 
 TEST_F(KafkaProducerEnv, StartThreadSuccessMessage) {
@@ -207,7 +206,7 @@ TEST_F(KafkaProducerEnv, MaxMessagesInQueue) {
   std::string msg("Some message");
   for (int i = 0; i < sendMsgs; i++) {
     ASSERT_TRUE(prod.SendKafkaPacket(
-        reinterpret_cast<const unsigned char *>(msg.c_str()), msg.size()));
+        reinterpret_cast<const unsigned char *>(msg.c_str()), msg.size(), time_point()));
   }
 
   std::chrono::milliseconds sleepTime(int(prod.kafka_stats_interval * 1.5));
@@ -246,10 +245,10 @@ TEST_F(KafkaProducerEnv, TooManyMessagesInQueue) {
   std::string msg("Some message");
   for (int i = 0; i < maxQueueSize; i++) {
     ASSERT_TRUE(prod.SendKafkaPacket(
-        reinterpret_cast<const unsigned char *>(msg.c_str()), msg.size()));
+        reinterpret_cast<const unsigned char *>(msg.c_str()), msg.size(), time_point()));
   }
   ASSERT_FALSE(prod.SendKafkaPacket(
-      reinterpret_cast<const unsigned char *>(msg.c_str()), msg.size()));
+      reinterpret_cast<const unsigned char *>(msg.c_str()), msg.size(), time_point()));
   std::chrono::milliseconds sleepTime(int(prod.kafka_stats_interval * 1.5));
   std::this_thread::sleep_for(sleepTime);
   Mock::VerifyAndClear(plugin.get());

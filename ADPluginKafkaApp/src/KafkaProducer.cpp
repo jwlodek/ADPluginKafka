@@ -20,7 +20,7 @@ KafkaProducer::KafkaProducer(std::string const &broker, std::string topic,
     : msgQueueSize(queueSize),
       conf(RdKafka::Conf::create(RdKafka::Conf::CONF_GLOBAL)),
       tconf(RdKafka::Conf::create(RdKafka::Conf::CONF_TOPIC)),
-      topicName(std::move(topic)) {
+      TopicName(std::move(topic)) {
   KafkaProducer::InitRdKafka();
   KafkaProducer::SetBrokerAddr(broker);
   KafkaProducer::MakeConnection();
@@ -38,8 +38,6 @@ KafkaProducer::~KafkaProducer() {
     runThread = false;
     statusThread.join();
   }
-  KafkaProducer::ShutDownTopic();
-  KafkaProducer::ShutDownProducer();
 }
 
 bool KafkaProducer::StartThread() {
@@ -58,16 +56,15 @@ bool KafkaProducer::StartThread() {
 }
 
 void KafkaProducer::ThreadFunction() {
-  // Uses std::this_thread::sleep_for() as it can not know if a producer and
-  // topic has been
+  // Uses std::this_thread::sleep_for() as it can not know if a producer has been
   // allocated.
   std::chrono::milliseconds sleepTime(KafkaProducer::sleepTime);
   while (runThread) {
     std::this_thread::sleep_for(sleepTime);
     {
       std::lock_guard<std::mutex> lock(brokerMutex);
-      if (producer != nullptr and topic != nullptr) {
-        producer->poll(0);
+      if (Producer != nullptr) {
+        Producer->poll(0);
       }
     }
   }
@@ -90,8 +87,6 @@ bool KafkaProducer::SetMaxMessageSize(size_t msgSize) {
   }
   maxMessageSize = msgSize;
   setParam(paramCallback, paramsList[PV::max_msg_size], int(msgSize));
-  ShutDownTopic();
-  ShutDownProducer();
   MakeConnection();
   return true;
 }
@@ -109,8 +104,6 @@ bool KafkaProducer::SetMessageBufferSizeKbytes(size_t msgBufferSize) {
   }
   maxMessageBufferSizeKb = msgBufferSize;
   setParam(paramCallback, paramsList[PV::msg_buffer_size], int(msgBufferSize));
-  ShutDownTopic();
-  ShutDownProducer();
   MakeConnection();
   return true;
 }
@@ -133,8 +126,6 @@ bool KafkaProducer::SetMessageQueueLength(int queue) {
     return false;
   }
   msgQueueSize = queue;
-  ShutDownTopic();
-  ShutDownProducer();
   MakeConnection();
   return true;
 }
@@ -142,7 +133,7 @@ bool KafkaProducer::SetMessageQueueLength(int queue) {
 int KafkaProducer::GetMessageQueueLength() { return msgQueueSize; }
 
 bool KafkaProducer::SendKafkaPacket(const unsigned char *buffer,
-                                    size_t buffer_size) {
+                                    size_t buffer_size, time_point Timestamp) {
   if (errorState or 0 == buffer_size) {
     return false;
   }
@@ -154,12 +145,13 @@ bool KafkaProducer::SendKafkaPacket(const unsigned char *buffer,
     }
   }
   std::lock_guard<std::mutex> lock(brokerMutex);
-  if (nullptr == producer or nullptr == topic) {
+  if (nullptr == Producer) {
     return false;
   }
-  RdKafka::ErrorCode resp = producer->produce(
-      topic, -1, RdKafka::Producer::RK_MSG_COPY /* Copy payload */,
-      const_cast<unsigned char *>(buffer), buffer_size, nullptr, nullptr);
+  auto MessageTime = std::chrono::duration_cast<std::chrono::milliseconds>(Timestamp.time_since_epoch()).count();
+  RdKafka::ErrorCode resp = Producer->produce(
+      TopicName, -1, RdKafka::Producer::RK_MSG_COPY /* Copy payload */,
+      const_cast<unsigned char *>(buffer), buffer_size, nullptr, 0, MessageTime, nullptr);
 
   if (RdKafka::ERR_NO_ERROR != resp) {
     SetConStat(KafkaProducer::ConStat::ERROR,
@@ -313,142 +305,51 @@ bool KafkaProducer::SetStatsTimeMS(int time) {
     return false;
   }
   kafka_stats_interval = time;
-  ShutDownTopic();
-  ShutDownProducer();
   MakeConnection();
   return true;
 }
 
 int KafkaProducer::GetStatsTimeMS() { return kafka_stats_interval; }
 
-bool KafkaProducer::SetTopic(std::string const &topicName) {
-  if (errorState or topicName.empty()) {
+bool KafkaProducer::SetTopic(std::string const &NewTopicName) {
+  if (NewTopicName.empty()) {
     return false;
   }
-  KafkaProducer::topicName = topicName;
-  brokerMutex.lock();
-  if (nullptr != topic and nullptr != producer) {
-    brokerMutex.unlock();
-    ShutDownTopic();
-  } else {
-    brokerMutex.unlock();
-  }
-  std::lock_guard<std::mutex> lock(brokerMutex);
-  if (nullptr != producer) {
-    topic = RdKafka::Topic::create(producer, topicName, tconf.get(), errstr);
-    if (nullptr == topic) {
-      SetConStat(KafkaProducer::ConStat::ERROR, "Unable to create topic.");
-      return false;
-    } else {
-      SetConStat(KafkaProducer::ConStat::CONNECTING, "Connecting to topic.");
-      return true;
-    }
-  }
+  TopicName = NewTopicName;
   return true;
 }
 
-std::string KafkaProducer::GetTopic() { return topicName; }
+std::string KafkaProducer::GetTopic() { return TopicName; }
 
-bool KafkaProducer::SetBrokerAddr(std::string const &brokerAddr) {
-  if (errorState or brokerAddr.empty()) {
+bool KafkaProducer::SetBrokerAddr(std::string const &NewBrokerAddr) {
+  if (errorState or NewBrokerAddr.empty()) {
     return false;
   }
   RdKafka::Conf::ConfResult cRes;
-  cRes = conf->set("metadata.broker.list", brokerAddr, errstr);
+  cRes = conf->set("metadata.broker.list", NewBrokerAddr, errstr);
   if (RdKafka::Conf::CONF_OK != cRes) {
     SetConStat(KafkaProducer::ConStat::ERROR, "Can not set new broker.");
     return false;
   }
-  KafkaProducer::brokerAddr = brokerAddr;
-  brokerMutex.lock();
-  if (nullptr != topic) {
-    brokerMutex.unlock();
-    ShutDownTopic();
-    ShutDownProducer();
-  } else {
-    brokerMutex.unlock();
-  }
+  BrokerAddr = NewBrokerAddr;
   MakeConnection();
   return true;
 }
 
-std::string KafkaProducer::GetBrokerAddr() { return brokerAddr; }
+std::string KafkaProducer::GetBrokerAddr() { return BrokerAddr; }
 
 bool KafkaProducer::MakeConnection() {
   // Do we know for sure that all possible paths will work? No!
   // This code could probably be improved somewhat.
   std::lock_guard<std::mutex> lock(brokerMutex);
-  if (nullptr == producer and nullptr == topic) {
-    if (not brokerAddr.empty()) {
-      producer = RdKafka::Producer::create(conf.get(), errstr);
-      if (nullptr == producer) {
+  if (not BrokerAddr.empty()) {
+      Producer.reset(RdKafka::Producer::create(conf.get(), errstr));
+      if (nullptr == Producer) {
         SetConStat(KafkaProducer::ConStat::ERROR, "Unable to create producer.");
         return false;
       }
-      if (not topicName.empty()) {
-        topic =
-            RdKafka::Topic::create(producer, topicName, tconf.get(), errstr);
-        if (nullptr == topic) {
-          SetConStat(KafkaProducer::ConStat::ERROR, "Unable to create topic.");
-          return false;
-        }
-        return true;
-      } else {
-        return false;
-      }
-    } else {
-      return false;
-    }
-  } else if (nullptr != producer and nullptr == topic) {
-    if (not topicName.empty()) {
-      topic = RdKafka::Topic::create(producer, topicName, tconf.get(), errstr);
-      if (nullptr == topic) {
-        SetConStat(KafkaProducer::ConStat::ERROR, "Unable to create topic.");
-        return false;
-      }
-      return true;
-    } else {
-      return false;
-    }
-  } else if (nullptr != producer and nullptr != topic) {
-    return true;
   }
-  assert(false);
   return true;
-}
-
-void KafkaProducer::ShutDownProducer() {
-  brokerMutex.lock();
-  if (nullptr != topic) {
-    brokerMutex.unlock();
-    ShutDownTopic();
-    brokerMutex.lock();
-  }
-  if (nullptr != producer) {
-    delete producer;
-    producer = nullptr;
-  }
-  brokerMutex.unlock();
-}
-
-void KafkaProducer::ShutDownTopic() {
-  std::lock_guard<std::mutex> lock(brokerMutex);
-  if (nullptr != topic) {
-    if (doFlush) {
-      int res = producer->flush(flushTimeout);
-      if (RdKafka::ERR__TIMED_OUT == res) {
-        SetConStat(KafkaProducer::ConStat::DISCONNECTED,
-                   "Timed out when waiting for msg flush.");
-      } else if (RdKafka::ERR_NO_ERROR == res) {
-        // Do nothing on no error
-      } else {
-        SetConStat(KafkaProducer::ConStat::DISCONNECTED,
-                   "Unknown error when waiting for msg flush.");
-      }
-    }
-    delete topic;
-    topic = nullptr;
-  }
 }
 
 std::vector<PV_param> &KafkaProducer::GetParams() { return paramsList; }

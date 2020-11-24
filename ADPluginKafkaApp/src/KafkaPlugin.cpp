@@ -32,9 +32,9 @@ void KafkaPlugin::processCallbacks(NDArray *pArray) {
   unsigned char *bufferPtr;
   size_t bufferSize;
 
-  serializer.SerializeData(*pArray, bufferPtr, bufferSize);
+  serializer.SerializeData(*pArray, bufferPtr, bufferSize, SourceName);
   this->unlock();
-  bool addToQueueSuccess = producer.SendKafkaPacket(bufferPtr, bufferSize);
+  bool addToQueueSuccess = producer.SendKafkaPacket(bufferPtr, bufferSize, epicsTimeToTimePoint(pArray->epicsTS));
   this->lock();
   if (not addToQueueSuccess) {
     int droppedArrays;
@@ -60,15 +60,15 @@ asynStatus KafkaPlugin::writeOctet(asynUser *pasynUser, const char *value,
   /* Set the parameter in the parameter library. */
   setStringParam(addr, function, const_cast<char *>(value));
 
-  std::string tempStr;
+  std::string tempStr{value, nChars};
   if (function == *paramsList.at(PV::kafka_addr).index) {
-    tempStr = std::string(value, nChars);
     producer.SetBrokerAddr(tempStr);
   } else if (function == *paramsList.at(PV::kafka_topic).index) {
-    tempStr = std::string(value, nChars);
     producer.SetTopic(tempStr);
+  } else if (function == *paramsList.at(PV::source_name).index) {
+    SourceName = tempStr;
   } else if (function < MIN_PARAM_INDEX) {
-    NDPluginDriver::writeOctet(pasynUser, value, nChars, nActual);
+      NDPluginDriver::writeOctet(pasynUser, value, nChars, nActual);
   }
 
   // Do callbacks so higher layers see any changes
@@ -125,11 +125,11 @@ KafkaPlugin::KafkaPlugin(const char *portName, int queueSize,
                          int blockingCallbacks, const char *NDArrayPort,
                          int NDArrayAddr, size_t maxMemory, int priority,
                          int stackSize, const char *brokerAddress,
-                         const char *brokerTopic)
+                         const char *brokerTopic, const char *sourceName)
     // Invoke the base class constructor
     : NDPluginDriver(portName, queueSize, blockingCallbacks, NDArrayPort,
                      NDArrayAddr, 1, 2, maxMemory, intMask, intMask, 0, 1,
-                     priority, stackSize, 1),
+                     priority, stackSize, 1), SourceName(sourceName),
       producer(brokerAddress, brokerTopic) {
 
   MIN_PARAM_INDEX = InitPvParams(this, paramsList);
@@ -142,6 +142,7 @@ KafkaPlugin::KafkaPlugin(const char *portName, int queueSize,
   setStringParam(NDPluginDriverPluginType, "KafkaPlugin");
   setParam(this, paramsList.at(PV::kafka_addr), brokerAddress);
   setParam(this, paramsList.at(PV::kafka_topic), brokerTopic);
+  setParam(this, paramsList.at(PV::source_name), sourceName);
   setParam(this, paramsList.at(PV::stats_time), producer.GetStatsTimeMS());
   setParam(this, paramsList.at(PV::queue_size),
            producer.GetMessageQueueLength());
@@ -160,10 +161,10 @@ extern "C" int KafkaPluginConfigure(const char *portName, int queueSize,
                                     int blockingCallbacks,
                                     const char *NDArrayPort, int NDArrayAddr,
                                     size_t maxMemory, const char *brokerAddress,
-                                    const char *topic) {
+                                    const char *topic, const char *sourceName) {
   auto *pPlugin =
       new KafkaPlugin(portName, queueSize, blockingCallbacks, NDArrayPort,
-                      NDArrayAddr, maxMemory, 0, 0, brokerAddress, topic);
+                      NDArrayAddr, maxMemory, 0, 0, brokerAddress, topic, sourceName);
 
   return pPlugin->start();
 }
@@ -179,16 +180,15 @@ static const iocshArg initArg5 = {"maxMemory", iocshArgInt};
 // static const iocshArg initArg7 = {"stack size", iocshArgInt};
 static const iocshArg initArg8 = {"broker address", iocshArgString};
 static const iocshArg initArg9 = {"topic", iocshArgString};
-// static const iocshArg *const initArgs[] = {&initArg0, &initArg1, &initArg2,
-// &initArg3,
-//    &initArg4, &initArg5, &initArg6, &initArg7, &initArg8, &initArg9};
+static const iocshArg initArg10 = {"source name", iocshArgString};
+
 static const iocshArg *const initArgs[] = {&initArg0, &initArg1, &initArg2,
                                            &initArg3, &initArg4, &initArg5,
-                                           &initArg8, &initArg9};
-static const iocshFuncDef initFuncDef = {"KafkaPluginConfigure", 8, initArgs};
+                                           &initArg8, &initArg9, &initArg10};
+static const iocshFuncDef initFuncDef = {"KafkaPluginConfigure", 9, initArgs};
 static void initCallFunc(const iocshArgBuf *args) {
   KafkaPluginConfigure(args[0].sval, args[1].ival, args[2].ival, args[3].sval,
-                       args[4].ival, args[5].ival, args[6].sval, args[7].sval);
+                       args[4].ival, args[5].ival, args[6].sval, args[7].sval, args[8].sval);
 }
 
 extern "C" void KafkaPluginReg(void) {
