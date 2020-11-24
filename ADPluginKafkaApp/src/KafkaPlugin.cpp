@@ -129,8 +129,8 @@ KafkaPlugin::KafkaPlugin(const char *portName, int queueSize,
     // Invoke the base class constructor
     : NDPluginDriver(portName, queueSize, blockingCallbacks, NDArrayPort,
                      NDArrayAddr, 1, 2, maxMemory, intMask, intMask, 0, 1,
-                     priority, stackSize, 1), SourceName(sourceName),
-      producer(brokerAddress, brokerTopic) {
+                     priority, stackSize, 1),
+      producer(brokerAddress, brokerTopic), SourceName(sourceName) {
 
   MIN_PARAM_INDEX = InitPvParams(this, paramsList);
 
