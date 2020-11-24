@@ -27,8 +27,8 @@ DBD += ADPluginKafka.dbd
 LIB_LIBS += NDPlugin
 LIB_LIBS += rdkafka++ rdkafka
 
-USR_CXXFLAGS_Linux += -std=c++11
 USR_CXXFLAGS += -I${AREA_DETECTOR}/ADCore/include
+USR_CXXFLAGS += -std=c++11
 
 ifneq ($(findstring static,$(EPICS_HOST_ARCH)),)
 USR_CXXFLAGS_WIN32 += -DLIBRDKAFKA_STATICLIB
