@@ -40,6 +40,3 @@ include $(ADCORE)/ADApp/commonLibraryMakefile
 include $(TOP)/configure/RULES
 #----------------------------------------
 #  ADD EXTRA GNUMAKE RULES BELOW HERE
-
-$(COMMON_DIR)/ADArray_schema_generated.h : ../ADArray_schema.fbs $(FLATBUFFERS)/include/flatbuffers/flatbuffers.h
-	$(FLATBUFFERS)/bin/$(EPICS_HOST_ARCH)/flatc --cpp -o $(COMMON_DIR)/ $<
