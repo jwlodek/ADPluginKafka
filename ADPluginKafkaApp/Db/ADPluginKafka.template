@@ -52,6 +52,7 @@ record(stringin, "$(P)$(R)KafkaBrokerAddress_RBV")
     field(DTYP, "asynOctetRead")
     field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))KAFKA_BROKER_ADDRESS")
     field(SCAN, "I/O Intr")
+    field(PINI, "YES")
 }
 
 record(stringout, "$(P)$(R)KafkaTopic")
@@ -66,6 +67,7 @@ record(stringin, "$(P)$(R)KafkaTopic_RBV")
     field(DTYP, "asynOctetRead")
     field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))KAFKA_TOPIC")
 	field(SCAN, "I/O Intr")
+	field(PINI, "YES")
 }
 
 record(stringout, "$(P)$(R)SourceName")
@@ -80,6 +82,7 @@ record(stringin, "$(P)$(R)SourceName_RBV")
     field(DTYP, "asynOctetRead")
     field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SOURCE_NAME")
 	field(SCAN, "I/O Intr")
+	field(PINI, "YES")
 }
 
 record(longout, "$(P)$(R)KafkaStatsIntervalTime") #Integer in from device

@@ -14,7 +14,6 @@
 #include <ciso646>
 #include <epicsExport.h>
 #include <string.h>
-#include <iostream>
 
 #include "KafkaPlugin.h"
 
@@ -90,7 +89,6 @@ asynStatus KafkaPlugin::readOctet(asynUser *pasynUser, char *value, size_t maxCh
 
   asynStatus status = parseAsynUser(pasynUser, &function, &addr, &paramName);
   if (status != asynSuccess) return status;
-  std::cout << "Read triggered of " << paramName << std::endl;
 
   std::string TempString;
   if (ParamRegistrar.read<std::string>(function, TempString)) {
