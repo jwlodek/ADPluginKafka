@@ -118,6 +118,7 @@ protected:
    */
   static const int intMask{asynInt32Mask | asynInt64Mask | asynOctetMask};
 
+  ParameterHandler ParamRegistrar{this};
 
   /// @brief The kafka producer which is used to send serialized NDArray data to
   /// the broker.
@@ -128,5 +129,4 @@ protected:
 
 
   Parameter<std::string> SourceName{"SOURCE_NAME", [&](std::string NewValue){return Serializer.setSourceName(NewValue);}, [&]() {return Serializer.getSourceName();}};
-  ParameterHandler ParamRegistrar{this};
 };
