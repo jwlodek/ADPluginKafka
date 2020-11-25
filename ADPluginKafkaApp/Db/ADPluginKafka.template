@@ -3,6 +3,21 @@
 
 include "NDPluginBase.template"
 
+record(stringout, "$(P)$(R)SourceName")
+{
+    field(DTYP, "asynOctetWrite")
+    field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SOURCE_NAME")
+    field(FLNK,  "$(P)$(R)SourceName_RBV")
+}
+
+record(stringin, "$(P)$(R)SourceName_RBV")
+{
+    field(DTYP, "asynOctetRead")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SOURCE_NAME")
+	field(PINI, "YES")
+	field(OUT,  "$(P)$(R)SourceName PP")
+}
+
 record(longin, "$(P)$(R)UnsentPackets_RBV") #Integer in from device
 {
     field(DTYP, "asynInt32")	#Data type
@@ -62,20 +77,6 @@ record(stringin, "$(P)$(R)KafkaTopic_RBV")
 {
     field(DTYP, "asynOctetRead")
     field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))KAFKA_TOPIC")
-	field(PINI, "YES")
-}
-
-record(stringout, "$(P)$(R)SourceName")
-{
-    field(DTYP, "asynOctetWrite")
-    field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SOURCE_NAME")
-	field(PINI, "YES")
-}
-
-record(stringin, "$(P)$(R)SourceName_RBV")
-{
-    field(DTYP, "asynOctetRead")
-    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SOURCE_NAME")
 	field(PINI, "YES")
 }
 
