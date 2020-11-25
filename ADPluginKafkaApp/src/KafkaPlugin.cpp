@@ -143,6 +143,36 @@ asynStatus KafkaPlugin::writeInt32(asynUser *pasynUser, epicsInt32 value) {
   return status;
 }
 
+asynStatus KafkaPlugin::readInt32(asynUser *pasynUser, epicsInt32 *value) {
+  int function;
+  const char *paramName;
+  int addr;
+  epicsTimeStamp timeStamp;
+  getTimeStamp(&timeStamp);
+  static const char *functionName = "readInt32";
+
+  asynStatus status = parseAsynUser(pasynUser, &function, &addr, &paramName);
+  if (status != asynSuccess)
+    return status;
+
+  if (not ParamRegistrar.read<int32_t>(function, *value)) {
+    status = asynError;
+  }
+
+  /* Set the timestamp */
+  pasynUser->timestamp = timeStamp;
+  if (status)
+    epicsSnprintf(pasynUser->errorMessage, pasynUser->errorMessageSize,
+                  "%s:%s: status=%d, function=%d, name=%s, value=%d",
+                  driverName, functionName, status, function, paramName, *value);
+  else
+    asynPrint(pasynUser, ASYN_TRACEIO_DRIVER,
+              "%s:%s: function=%d, name=%s, value=%d\n", driverName,
+              functionName, function, paramName, *value);
+  return status;
+}
+
+
 asynStatus KafkaPlugin::writeInt64(asynUser *pasynUser, epicsInt64 value) {
   const int function{pasynUser->reason};
   static const char *functionName = "writeInt64";
@@ -165,6 +195,35 @@ asynStatus KafkaPlugin::writeInt64(asynUser *pasynUser, epicsInt64 value) {
               "%s:%s: function=%d, value=%lli\n", driverName, functionName,
               function, value);
   }
+  return status;
+}
+
+asynStatus KafkaPlugin::readInt64(asynUser *pasynUser, epicsInt64 *value) {
+  int function;
+  const char *paramName;
+  int addr;
+  epicsTimeStamp timeStamp;
+  getTimeStamp(&timeStamp);
+  static const char *functionName = "readInt64";
+
+  asynStatus status = parseAsynUser(pasynUser, &function, &addr, &paramName);
+  if (status != asynSuccess)
+    return status;
+
+  if (not ParamRegistrar.read<int64_t>(function, *value)) {
+    status = asynError;
+  }
+
+  /* Set the timestamp */
+  pasynUser->timestamp = timeStamp;
+  if (status)
+    epicsSnprintf(pasynUser->errorMessage, pasynUser->errorMessageSize,
+                  "%s:%s: status=%d, function=%d, name=%s, value=%lli",
+                  driverName, functionName, status, function, paramName, *value);
+  else
+    asynPrint(pasynUser, ASYN_TRACEIO_DRIVER,
+              "%s:%s: function=%d, name=%s, value=%lli\n", driverName,
+              functionName, function, paramName, *value);
   return status;
 }
 

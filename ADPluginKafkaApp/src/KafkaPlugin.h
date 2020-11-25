@@ -111,7 +111,11 @@ public:
    */
   asynStatus writeInt32(asynUser *pasynUser, epicsInt32 value) override;
 
+  asynStatus readInt32(asynUser *pasynUser, epicsInt32 *value) override;
+
   asynStatus writeInt64(asynUser *pasynUser, epicsInt64 value) override;
+
+  asynStatus readInt64(asynUser *pasynUser, epicsInt64 *value) override;
 
 protected:
   /** @brief Interrupt mask passed to NDPluginDriver.

@@ -29,7 +29,7 @@ record(bo, "$(P)$(R)ReconnectFlush")
    field(ZNAM, "No flush")
    field(ONAM, "Flush")
    field(FLNK,  "$(P)$(R)ReconnectFlush_RBV")
-   info(asyn:READBACK, "1")
+   info(asyn:INITIAL_READBACK, "1")
 }
 
 record(bi, "$(P)$(R)ReconnectFlush_RBV")
@@ -49,7 +49,7 @@ record(longout, "$(P)$(R)ReconnectFlushTime")
     field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))KAFKA_FLUSH_TIME")
     field(EGU,  "ms")
     field(FLNK,  "$(P)$(R)ReconnectFlushTime_RBV")
-    info(asyn:READBACK, "1")
+    info(asyn:INITIAL_READBACK, "1")
 }
 
 record(longin, "$(P)$(R)ReconnectFlushTime_RBV")
@@ -68,7 +68,7 @@ record(longout, "$(P)$(R)KafkaBufferSize")
     field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))KAFKA_MSG_BUFFER_SIZE")
     field(EGU,  "kb")
     field(FLNK,  "$(P)$(R)KafkaBufferSize_RBV")
-    info(asyn:READBACK, "1")
+    info(asyn:INITIAL_READBACK, "1")
 }
 
 record(longin, "$(P)$(R)KafkaBufferSize_RBV")
@@ -87,7 +87,7 @@ record(longout, "$(P)$(R)KafkaMaxMessageSize")
     field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))KAFKA_MAX_MSG_SIZE")
     field(EGU,  "bytes")
     field(FLNK,  "$(P)$(R)KafkaMaxMessageSize_RBV")
-    info(asyn:READBACK, "1")
+    info(asyn:INITIAL_READBACK, "1")
 }
 
 record(longin, "$(P)$(R)KafkaMaxMessageSize_RBV")
@@ -175,6 +175,7 @@ record(longout, "$(P)$(R)KafkaStatsIntervalTime") #Integer in from device
     field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))KAFKA_STATS_INT_MS")
     field(EGU,  "ms")
     field(FLNK, "$(P)$(R)KafkaStatsIntervalTime_RBV")
+    info(asyn:INITIAL_READBACK, "1")
 }
 
 record(longin, "$(P)$(R)KafkaStatsIntervalTime_RBV") #Integer in from device
@@ -192,6 +193,7 @@ record(longout, "$(P)$(R)KafkaMaxQueueSize") #Integer in from device
     field(DTYP, "asynInt32")	#Data type
     field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))KAFKA_QUEUE_SIZE")
     field(FLNK, "$(P)$(R)KafkaMaxQueueSize_RBV")
+    info(asyn:INITIAL_READBACK, "1")
 }
 
 record(longin, "$(P)$(R)KafkaMaxQueueSize_RBV") #Integer in from device
