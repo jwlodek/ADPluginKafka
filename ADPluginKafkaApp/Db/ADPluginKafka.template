@@ -3,6 +3,8 @@
 
 include "NDPluginBase.template"
 
+##### Source name
+
 record(stringout, "$(P)$(R)SourceName")
 {
     field(DTYP, "asynOctetWrite")
@@ -18,6 +20,7 @@ record(stringin, "$(P)$(R)SourceName_RBV")
     field(PINI, "YES")
 }
 
+##### Reconnect flush
 
 record(bo, "$(P)$(R)ReconnectFlush")
 {
@@ -25,7 +28,8 @@ record(bo, "$(P)$(R)ReconnectFlush")
    field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))KAFKA_RECONNECT_FLUSH")
    field(ZNAM, "No flush")
    field(ONAM, "Flush")
-   info(asyn:INITIAL_READBACK, "1")
+   field(FLNK,  "$(P)$(R)ReconnectFlush_RBV")
+   info(asyn:READBACK, "1")
 }
 
 record(bi, "$(P)$(R)ReconnectFlush_RBV")
@@ -37,13 +41,15 @@ record(bi, "$(P)$(R)ReconnectFlush_RBV")
    field(PINI, "YES")
 }
 
+##### Reconnect flush time
 
 record(longout, "$(P)$(R)ReconnectFlushTime")
 {
     field(DTYP, "asynInt32")	#Data type
     field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))KAFKA_FLUSH_TIME")
     field(EGU,  "ms")
-    info(asyn:INITIAL_READBACK, "1")
+    field(FLNK,  "$(P)$(R)ReconnectFlushTime_RBV")
+    info(asyn:READBACK, "1")
 }
 
 record(longin, "$(P)$(R)ReconnectFlushTime_RBV")
@@ -54,19 +60,54 @@ record(longin, "$(P)$(R)ReconnectFlushTime_RBV")
     field(PINI, "YES")
 }
 
+##### Kafka buffer size
+
+record(longout, "$(P)$(R)KafkaBufferSize")
+{
+    field(DTYP, "asynInt32")	#Data type
+    field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))KAFKA_MSG_BUFFER_SIZE")
+    field(EGU,  "kb")
+    field(FLNK,  "$(P)$(R)KafkaBufferSize_RBV")
+    info(asyn:READBACK, "1")
+}
+
+record(longin, "$(P)$(R)KafkaBufferSize_RBV")
+{
+    field(DTYP, "asynInt32")	#Data type
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))KAFKA_MSG_BUFFER_SIZE")
+    field(EGU,  "kb")
+    field(PINI, "YES")
+}
+
+##### Kafka max msg size
+
+record(longout, "$(P)$(R)KafkaMaxMessageSize")
+{
+    field(DTYP, "asynInt32")	#Data type
+    field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))KAFKA_MAX_MSG_SIZE")
+    field(EGU,  "bytes")
+    field(FLNK,  "$(P)$(R)KafkaMaxMessageSize_RBV")
+    info(asyn:READBACK, "1")
+}
+
+record(longin, "$(P)$(R)KafkaMaxMessageSize_RBV")
+{
+    field(DTYP, "asynInt32")	#Data type
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))KAFKA_MAX_MSG_SIZE")
+    field(EGU,  "bytes")
+    field(PINI, "YES")
+}
+
+##### Kafka unsent packets
 
 record(longin, "$(P)$(R)UnsentPackets_RBV") #Integer in from device
 {
     field(DTYP, "asynInt32")	#Data type
     field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))KAFKA_UNSENT_PACKETS")
+    field(PINI, "YES")
 }
 
-record(longin, "$(P)$(R)KafkaMaxMessageSize_RBV") #Integer in from device
-{
-    field(DTYP, "asynInt32")	#Data type
-    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))KAFKA_MAX_MSG_SIZE")
-    field(EGU,  "byte")
-}
+##### Kafka connection status packets
 
 record(mbbi, "$(P)$(R)ConnectionStatus_RBV") #Multi bit binary input
 {
@@ -80,7 +121,10 @@ record(mbbi, "$(P)$(R)ConnectionStatus_RBV") #Multi bit binary input
    field(TWVL, "2")
    field(THST, "Error")
    field(THVL, "3")
+   field(PINI, "YES")
 }
+
+##### Kafka connection message
 
 record(stringin, "$(P)$(R)ConnectionMessage_RBV")
 {
@@ -138,16 +182,21 @@ record(longin, "$(P)$(R)KafkaStatsIntervalTime_RBV") #Integer in from device
     field(DTYP, "asynInt32")	#Data type
     field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))KAFKA_STATS_INT_MS")
     field(EGU,  "ms")
+    field(PINI, "YES")
 }
+
+##### Kafka max queue size
 
 record(longout, "$(P)$(R)KafkaMaxQueueSize") #Integer in from device
 {
     field(DTYP, "asynInt32")	#Data type
     field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))KAFKA_QUEUE_SIZE")
+    field(FLNK, "$(P)$(R)KafkaMaxQueueSize_RBV")
 }
 
 record(longin, "$(P)$(R)KafkaMaxQueueSize_RBV") #Integer in from device
 {
     field(DTYP, "asynInt32")	#Data type
     field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))KAFKA_QUEUE_SIZE")
+    field(PINI, "YES")
 }
