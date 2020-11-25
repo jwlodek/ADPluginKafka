@@ -8,15 +8,48 @@ record(stringout, "$(P)$(R)SourceName")
     field(DTYP, "asynOctetWrite")
     field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SOURCE_NAME")
     field(FLNK,  "$(P)$(R)SourceName_RBV")
+    info(asyn:INITIAL_READBACK, "1")
 }
 
 record(stringin, "$(P)$(R)SourceName_RBV")
 {
     field(DTYP, "asynOctetRead")
     field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))SOURCE_NAME")
-	field(PINI, "YES")
-	field(OUT,  "$(P)$(R)SourceName PP")
+    field(PINI, "YES")
 }
+
+
+record(bo, "$(P)$(R)ReconnectFlush")
+{
+   field(DTYP, "asynInt32")
+   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))KAFKA_RECONNECT_FLUSH")
+   field(ZNAM, "No flush")
+   field(ONAM, "Flush")
+}
+
+record(bi, "$(P)$(R)ReconnectFlush_RBV")
+{
+   field(DTYP, "asynInt32")
+   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))KAFKA_RECONNECT_FLUSH")
+   field(ZNAM, "No flush")
+   field(ONAM, "Flush")
+}
+
+
+record(longout, "$(P)$(R)ReconnectFlushTime")
+{
+    field(DTYP, "asynInt32")	#Data type
+    field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))KAFKA_FLUSH_TIME")
+    field(EGU,  "ms")
+}
+
+record(longin, "$(P)$(R)ReconnectFlushTime_RBV")
+{
+    field(DTYP, "asynInt32")	#Data type
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))KAFKA_FLUSH_TIME")
+    field(EGU,  "ms")
+}
+
 
 record(longin, "$(P)$(R)UnsentPackets_RBV") #Integer in from device
 {
