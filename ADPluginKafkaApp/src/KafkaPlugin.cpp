@@ -99,6 +99,8 @@ asynStatus KafkaPlugin::readOctet(asynUser *pasynUser, char *value,
   std::string TempString;
   if (ParamRegistrar.read<std::string>(function, TempString)) {
     strncpy(value, TempString.c_str(), TempString.size() + 1);
+  } else if (NDPluginDriver::readOctet(pasynUser, value, maxChars, nActual, eomReason) == asynSuccess) {
+    // Do nothing
   } else {
     status = asynError;
   }
@@ -155,7 +157,7 @@ asynStatus KafkaPlugin::readInt32(asynUser *pasynUser, epicsInt32 *value) {
   if (status != asynSuccess)
     return status;
 
-  if (not ParamRegistrar.read<int32_t>(function, *value)) {
+  if (not ParamRegistrar.read<int32_t>(function, *value) or NDPluginDriver::readInt32(pasynUser, value) != asynSuccess) {
     status = asynError;
   }
 
@@ -210,7 +212,7 @@ asynStatus KafkaPlugin::readInt64(asynUser *pasynUser, epicsInt64 *value) {
   if (status != asynSuccess)
     return status;
 
-  if (not ParamRegistrar.read<int64_t>(function, *value)) {
+  if (not ParamRegistrar.read<int64_t>(function, *value) or NDPluginDriver::readInt64(pasynUser, value) != asynSuccess) {
     status = asynError;
   }
 
