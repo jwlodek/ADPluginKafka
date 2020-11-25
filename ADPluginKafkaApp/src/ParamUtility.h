@@ -8,11 +8,11 @@
 #pragma once
 
 #include <asynNDArrayDriver.h>
+#include <ciso646>
 #include <cstdlib>
 #include <memory>
 #include <string>
 #include <vector>
-#include <ciso646>
 
 /** @brief A simple class for collection all the relevant information about a PV
  * in a single

@@ -13,10 +13,10 @@
 #include "KafkaProducer.h"
 #include "NDArraySerializer.h"
 #include "ParamUtility.h"
-#include <NDPluginDriver.h>
-#include <map>
 #include "Parameter.h"
 #include "ParameterHandler.h"
+#include <NDPluginDriver.h>
+#include <map>
 
 using namespace KafkaInterface;
 /** @brief areaDetector plugin that produces Kafka messages and sends them to a
@@ -127,6 +127,8 @@ protected:
   /// @brief The class instance used to serialize NDArray data.
   NDArraySerializer Serializer;
 
-
-  Parameter<std::string> SourceName{"SOURCE_NAME", [&](std::string NewValue){return Serializer.setSourceName(NewValue);}, [&]() {return Serializer.getSourceName();}};
+  Parameter<std::string> SourceName{
+      "SOURCE_NAME",
+      [&](std::string NewValue) { return Serializer.setSourceName(NewValue); },
+      [&]() { return Serializer.getSourceName(); }};
 };

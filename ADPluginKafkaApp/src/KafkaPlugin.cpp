@@ -35,7 +35,8 @@ void KafkaPlugin::processCallbacks(NDArray *pArray) {
 
   Serializer.SerializeData(*pArray, bufferPtr, bufferSize);
   this->unlock();
-  bool addToQueueSuccess = producer.SendKafkaPacket(bufferPtr, bufferSize, epicsTimeToTimePoint(pArray->epicsTS));
+  bool addToQueueSuccess = producer.SendKafkaPacket(
+      bufferPtr, bufferSize, epicsTimeToTimePoint(pArray->epicsTS));
   this->lock();
   if (not addToQueueSuccess) {
     int droppedArrays;
@@ -57,7 +58,9 @@ asynStatus KafkaPlugin::writeOctet(asynUser *pasynUser, const char *value,
     return (status);
   }
 
-  if (ParamRegistrar.write<std::string>(function, {value, nChars}) or NDPluginDriver::writeOctet(pasynUser, value, nChars, nActual) == asynSuccess) {
+  if (ParamRegistrar.write<std::string>(function, {value, nChars}) or
+      NDPluginDriver::writeOctet(pasynUser, value, nChars, nActual) ==
+          asynSuccess) {
     /* Set the parameter in the parameter library. */
     setStringParam(addr, function, const_cast<char *>(value));
   }
@@ -79,16 +82,19 @@ asynStatus KafkaPlugin::writeOctet(asynUser *pasynUser, const char *value,
   return status;
 }
 
-asynStatus KafkaPlugin::readOctet(asynUser *pasynUser, char *value, size_t maxChars,
-                     size_t *nActual, int *eomReason) {
+asynStatus KafkaPlugin::readOctet(asynUser *pasynUser, char *value,
+                                  size_t maxChars, size_t *nActual,
+                                  int *eomReason) {
   int function;
   const char *paramName;
   int addr;
-  epicsTimeStamp timeStamp; getTimeStamp(&timeStamp);
+  epicsTimeStamp timeStamp;
+  getTimeStamp(&timeStamp);
   static const char *functionName = "readOctet";
 
   asynStatus status = parseAsynUser(pasynUser, &function, &addr, &paramName);
-  if (status != asynSuccess) return status;
+  if (status != asynSuccess)
+    return status;
 
   std::string TempString;
   if (ParamRegistrar.read<std::string>(function, TempString)) {
@@ -105,10 +111,11 @@ asynStatus KafkaPlugin::readOctet(asynUser *pasynUser, char *value, size_t maxCh
                   driverName, functionName, status, function, paramName, value);
   else
     asynPrint(pasynUser, ASYN_TRACEIO_DRIVER,
-              "%s:%s: function=%d, name=%s, value=%s\n",
-              driverName, functionName, function, paramName, value);
-  if (eomReason) *eomReason = ASYN_EOM_END;
-  *nActual = strlen(value)+1;
+              "%s:%s: function=%d, name=%s, value=%s\n", driverName,
+              functionName, function, paramName, value);
+  if (eomReason)
+    *eomReason = ASYN_EOM_END;
+  *nActual = strlen(value) + 1;
   return status;
 }
 
@@ -116,7 +123,8 @@ asynStatus KafkaPlugin::writeInt32(asynUser *pasynUser, epicsInt32 value) {
   const int function{pasynUser->reason};
   static const char *functionName = "writeInt32";
 
-  if (ParamRegistrar.write<int32_t>(function, value) or NDPluginDriver::writeInt32(pasynUser, value) == asynSuccess) {
+  if (ParamRegistrar.write<int32_t>(function, value) or
+      NDPluginDriver::writeInt32(pasynUser, value) == asynSuccess) {
     /* Set the parameter in the parameter library. */
     setIntegerParam(function, value);
   }
@@ -139,7 +147,8 @@ asynStatus KafkaPlugin::writeInt64(asynUser *pasynUser, epicsInt64 value) {
   const int function{pasynUser->reason};
   static const char *functionName = "writeInt64";
 
-  if (ParamRegistrar.write<int64_t>(function, value) or NDPluginDriver::writeInt64(pasynUser, value) == asynSuccess) {
+  if (ParamRegistrar.write<int64_t>(function, value) or
+      NDPluginDriver::writeInt64(pasynUser, value) == asynSuccess) {
     /* Set the parameter in the parameter library. */
     setIntegerParam(function, value);
   }
@@ -152,8 +161,9 @@ asynStatus KafkaPlugin::writeInt64(asynUser *pasynUser, epicsInt64 value) {
                   "%s:%s: status=%d, function=%d, value=%lli", driverName,
                   functionName, status, function, value);
   } else {
-    asynPrint(pasynUser, ASYN_TRACEIO_DRIVER, "%s:%s: function=%d, value=%lli\n",
-              driverName, functionName, function, value);
+    asynPrint(pasynUser, ASYN_TRACEIO_DRIVER,
+              "%s:%s: function=%d, value=%lli\n", driverName, functionName,
+              function, value);
   }
   return status;
 }
@@ -167,7 +177,8 @@ KafkaPlugin::KafkaPlugin(const char *portName, int queueSize,
     : NDPluginDriver(portName, queueSize, blockingCallbacks, NDArrayPort,
                      NDArrayAddr, 1, 2, maxMemory, intMask, intMask, 0, 1,
                      priority, stackSize, 1),
-      producer(brokerAddress, brokerTopic, &ParamRegistrar), Serializer(sourceName) {
+      producer(brokerAddress, brokerTopic, &ParamRegistrar),
+      Serializer(sourceName) {
 
   producer.StartThread();
 
@@ -189,9 +200,9 @@ extern "C" int KafkaPluginConfigure(const char *portName, int queueSize,
                                     const char *NDArrayPort, int NDArrayAddr,
                                     size_t maxMemory, const char *brokerAddress,
                                     const char *topic, const char *sourceName) {
-  auto *pPlugin =
-      new KafkaPlugin(portName, queueSize, blockingCallbacks, NDArrayPort,
-                      NDArrayAddr, maxMemory, 0, 0, brokerAddress, topic, sourceName);
+  auto *pPlugin = new KafkaPlugin(portName, queueSize, blockingCallbacks,
+                                  NDArrayPort, NDArrayAddr, maxMemory, 0, 0,
+                                  brokerAddress, topic, sourceName);
 
   return pPlugin->start();
 }
@@ -215,7 +226,8 @@ static const iocshArg *const initArgs[] = {&initArg0, &initArg1, &initArg2,
 static const iocshFuncDef initFuncDef = {"KafkaPluginConfigure", 9, initArgs};
 static void initCallFunc(const iocshArgBuf *args) {
   KafkaPluginConfigure(args[0].sval, args[1].ival, args[2].ival, args[3].sval,
-                       args[4].ival, args[5].ival, args[6].sval, args[7].sval, args[8].sval);
+                       args[4].ival, args[5].ival, args[6].sval, args[7].sval,
+                       args[8].sval);
 }
 
 extern "C" void KafkaPluginReg(void) {

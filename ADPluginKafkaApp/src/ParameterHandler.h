@@ -6,19 +6,19 @@
 
 #pragma once
 
-#include <map>
-#include <asynPortDriver.h>
 #include "Parameter.h"
+#include <asynPortDriver.h>
+#include <map>
 
 class ParameterHandler {
 public:
   ParameterHandler(asynPortDriver *DriverPtr);
   void registerParameter(ParameterBase *Param);
 
-  template<class ParamType>
-  bool write(int Index, ParamType Value) {
+  template <class ParamType> bool write(int Index, ParamType Value) {
     try {
-      auto ParamPtr = dynamic_cast<Parameter<ParamType>*>(KnownParameters.at(Index));
+      auto ParamPtr =
+          dynamic_cast<Parameter<ParamType> *>(KnownParameters.at(Index));
       if (ParamPtr == nullptr) {
         return false;
       }
@@ -29,10 +29,10 @@ public:
     return true;
   }
 
-  template <class ParamType>
-  bool read(int Index, ParamType &Value) {
+  template <class ParamType> bool read(int Index, ParamType &Value) {
     try {
-      auto ParamPtr = dynamic_cast<Parameter<ParamType>*>(KnownParameters.at(Index));
+      auto ParamPtr =
+          dynamic_cast<Parameter<ParamType> *>(KnownParameters.at(Index));
       if (ParamPtr == nullptr) {
         return false;
       }
@@ -43,7 +43,8 @@ public:
     return true;
   }
   void updateDbValue(ParameterBase *ParamPtr);
+
 private:
-  std::map<int, ParameterBase*> KnownParameters;
+  std::map<int, ParameterBase *> KnownParameters;
   asynPortDriver *Driver;
 };

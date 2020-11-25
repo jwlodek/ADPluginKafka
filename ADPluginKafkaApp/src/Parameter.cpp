@@ -8,7 +8,9 @@
 #include "ParameterHandler.h"
 
 void ParameterBase::updateDbValue() {
-  if (HandlerPtr == nullptr) {return;}
+  if (HandlerPtr == nullptr) {
+    return;
+  }
   HandlerPtr->updateDbValue(this);
 }
 

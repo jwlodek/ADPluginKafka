@@ -9,7 +9,10 @@
 std::uint64_t epicsTimeToNsec(epicsTimeStamp const &Timestamp) {
   const auto TimeDiffUNIXtoEPICSepoch = 631152000L;
   const auto NSecMultiplier = 1000000000L;
-  return static_cast<std::uint64_t>(Timestamp.secPastEpoch + TimeDiffUNIXtoEPICSepoch) * NSecMultiplier + Timestamp.nsec;
+  return static_cast<std::uint64_t>(Timestamp.secPastEpoch +
+                                    TimeDiffUNIXtoEPICSepoch) *
+             NSecMultiplier +
+         Timestamp.nsec;
 }
 
 time_point epicsTimeToTimePoint(epicsTimeStamp const &TimeStamp) {

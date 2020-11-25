@@ -6,8 +6,8 @@
 #pragma once
 
 #include "ADArray_schema_generated.h"
-#include <flatbuffers/flatbuffers.h>
 #include <NDArray.h>
+#include <flatbuffers/flatbuffers.h>
 
 /** @brief Class which is used to serialize NDArray data using flatbuffers.
  * The C++ flatbuffers implementatione has an internal buffer for storing the
@@ -29,7 +29,8 @@ public:
    * if the data does
    * not fit.
    */
-  explicit NDArraySerializer(std::string SourceName, const flatbuffers::uoffset_t bufferSize = 1048576);
+  explicit NDArraySerializer(std::string SourceName,
+                             const flatbuffers::uoffset_t bufferSize = 1048576);
 
   /** @brief Serializes data held in the input NDArray.
    * Note that the returned pointer is only valid until next time

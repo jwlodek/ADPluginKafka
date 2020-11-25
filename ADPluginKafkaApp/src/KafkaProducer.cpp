@@ -5,16 +5,15 @@
  */
 
 #include "KafkaProducer.h"
+#include <algorithm>
 #include <cassert>
 #include <ciso646>
 #include <cstdlib>
-#include <algorithm>
 
 namespace KafkaInterface {
 
 KafkaProducer::KafkaProducer(std::string const &broker, std::string topic,
-                             ParameterHandler *ParamRegistrar,
-                             int queueSize)
+                             ParameterHandler *ParamRegistrar, int queueSize)
     : msgQueueSize(queueSize),
       conf(RdKafka::Conf::create(RdKafka::Conf::CONF_GLOBAL)),
       tconf(RdKafka::Conf::create(RdKafka::Conf::CONF_TOPIC)),
@@ -65,8 +64,8 @@ bool KafkaProducer::StartThread() {
 }
 
 void KafkaProducer::ThreadFunction() {
-  // Uses std::this_thread::sleep_for() as it can not know if a producer has been
-  // allocated.
+  // Uses std::this_thread::sleep_for() as it can not know if a producer has
+  // been allocated.
   while (runThread) {
     std::this_thread::sleep_for(PollSleepTime);
     {
@@ -154,10 +153,13 @@ bool KafkaProducer::SendKafkaPacket(const unsigned char *buffer,
   if (nullptr == Producer) {
     return false;
   }
-  auto MessageTime = std::chrono::duration_cast<std::chrono::milliseconds>(Timestamp.time_since_epoch()).count();
+  auto MessageTime = std::chrono::duration_cast<std::chrono::milliseconds>(
+                         Timestamp.time_since_epoch())
+                         .count();
   RdKafka::ErrorCode resp = Producer->produce(
       TopicName, -1, RdKafka::Producer::RK_MSG_COPY /* Copy payload */,
-      const_cast<unsigned char *>(buffer), buffer_size, nullptr, 0, MessageTime, nullptr);
+      const_cast<unsigned char *>(buffer), buffer_size, nullptr, 0, MessageTime,
+      nullptr);
 
   if (RdKafka::ERR_NO_ERROR != resp) {
     SetConStat(KafkaProducer::ConStat::ERROR,
@@ -211,7 +213,8 @@ void KafkaProducer::ParseStatusString(std::string const &msg) {
   /// @todo We should probably extract some more stats from the JSON message
   const std::unique_ptr<Json::CharReader> reader(builder.newCharReader());
   JSONCPP_STRING err;
-  bool parseSuccess = reader->parse(msg.c_str(), msg.c_str() + msg.size(), &root, &err);
+  bool parseSuccess =
+      reader->parse(msg.c_str(), msg.c_str() + msg.size(), &root, &err);
   if (not parseSuccess) {
     SetConStat(KafkaProducer::ConStat::ERROR, "Status msg.: Unable to parse.");
     return;
@@ -236,9 +239,7 @@ void KafkaProducer::ParseStatusString(std::string const &msg) {
   UnsentPackets.updateDbValue();
 }
 
-void KafkaProducer::AttemptFlushAtReconnect(bool flush) {
-  doFlush = flush;
-}
+void KafkaProducer::AttemptFlushAtReconnect(bool flush) { doFlush = flush; }
 
 void KafkaProducer::FlushTimeout(int32_t TimeOutMS) {
   flushTimeout = TimeOutMS;
@@ -353,11 +354,11 @@ bool KafkaProducer::MakeConnection() {
   // This code could probably be improved somewhat.
   std::lock_guard<std::mutex> lock(brokerMutex);
   if (not BrokerAddr.empty()) {
-      Producer.reset(RdKafka::Producer::create(conf.get(), errstr));
-      if (nullptr == Producer) {
-        SetConStat(KafkaProducer::ConStat::ERROR, "Unable to create producer.");
-        return false;
-      }
+    Producer.reset(RdKafka::Producer::create(conf.get(), errstr));
+    if (nullptr == Producer) {
+      SetConStat(KafkaProducer::ConStat::ERROR, "Unable to create producer.");
+      return false;
+    }
   }
   return true;
 }

@@ -7,18 +7,18 @@
 #pragma once
 
 #include "ParamUtility.h"
+#include "Parameter.h"
+#include "ParameterHandler.h"
+#include "TimeUtility.h"
 #include "json/json.h"
 #include <asynNDArrayDriver.h>
 #include <atomic>
+#include <chrono>
 #include <librdkafka/rdkafkacpp.h>
 #include <memory>
 #include <mutex>
 #include <thread>
 #include <vector>
-#include "TimeUtility.h"
-#include <chrono>
-#include "Parameter.h"
-#include "ParameterHandler.h"
 
 /** @brief The KafkaInterface namespace is used primarily to seperate
  * KafkaInterface::KafkaConsumer
@@ -206,7 +206,8 @@ public:
   /** @brief Sends the binary data stored in the buffer to the Kafka broker.
    * \todo Complete documentation.
    */
-  virtual bool SendKafkaPacket(const unsigned char *buffer, size_t buffer_size, time_point Timestamp);
+  virtual bool SendKafkaPacket(const unsigned char *buffer, size_t buffer_size,
+                               time_point Timestamp);
 
   static int GetNumberOfPVs();
 
@@ -214,14 +215,14 @@ protected:
   bool errorState{
       false}; /// @brief Set to true if librdkafka could not be initialized.
   bool doFlush{true}; /// @brief Should a flush attempt be made at disconnect?
-  int32_t flushTimeout{500}; /// @brief What is the timeout of the flush attempt?
+  int32_t flushTimeout{
+      500}; /// @brief What is the timeout of the flush attempt?
 
   size_t maxMessageSize{
       10000000}; /// @brief Stored maximum message size in bytes.
   size_t maxMessageBufferSizeKb{
       500000};      /// @brief Message buffer size in kilo bytes.
   int msgQueueSize; /// @brief Stored maximum Kafka producer queue length.
-
 
   /** @brief Callback member function used by the status and error handling
    * system of librdkafka.
@@ -313,8 +314,7 @@ protected:
   /// @brief Stores the pointer to a librdkafka topic configruation object.
   std::unique_ptr<RdKafka::Conf> tconf;
 
-  std::string
-      TopicName; /// @brief The current topic name used by the consumer.
+  std::string TopicName; /// @brief The current topic name used by the consumer.
   std::string BrokerAddr; /// @brief Stores the current broker address used by
                           /// the consumer.
 
@@ -323,7 +323,8 @@ protected:
 
   /// @brief The root and broker json objects extracted from a json string.
   Json::Value root, brokers;
-  Json::CharReaderBuilder builder; /// @brief Parses std:string objects into a Json::value.
+  Json::CharReaderBuilder
+      builder; /// @brief Parses std:string objects into a Json::value.
 
   /// @brief C++11 thread which periodically polls for connection stats.
   std::thread statusThread;
@@ -331,16 +332,49 @@ protected:
   /// @brief Used to shut down the stats thread.
   std::atomic_bool runThread{false};
 
-  Parameter<int32_t> ReconnectFlush{"KAFKA_RECONNECT_FLUSH", [&](int32_t Value){AttemptFlushAtReconnect(bool(Value)); return true;}, [&]() {return doFlush;}};
-  Parameter<int32_t> ReconnectFlushTime{"KAFKA_FLUSH_TIME", [&](int32_t Value){FlushTimeout(Value); return true;}, [&]() {return flushTimeout;}};
-  Parameter<int32_t> MsgBufferSize{"KAFKA_MSG_BUFFER_SIZE", [&](int32_t Value){return SetMessageBufferSizeKbytes(Value);}, [&]() {return GetMessageBufferSizeKbytes();}};
-  Parameter<int32_t> MaxMessageSize{"KAFKA_MAX_MSG_SIZE", [&](int32_t Value){return SetMaxMessageSize(Value);}, [&]() {return GetMaxMessageSize();}};
-  Parameter<int32_t> UnsentPackets{"KAFKA_UNSENT_PACKETS", [&](int32_t){return false;}, [&]() {return UnsentMessages;}};
-  Parameter<int32_t> KafkaStatus{"KAFKA_CONNECTION_STATUS", [&](int32_t){return false;}, [&]() {return int(CurrentStatus);}};
-  Parameter<std::string> KafkaMessage{"KAFKA_CONNECTION_MESSAGE", [&](std::string){return false;}, [&]() {return ConnectionMessage;}};
-  Parameter<std::string> KafkaTopic{"KAFKA_TOPIC", [&](std::string NewValue){return SetTopic(NewValue);}, [&]() {return GetTopic();}};
-  Parameter<std::string> KafkaBroker{"KAFKA_BROKER_ADDRESS", [&](std::string NewValue){return SetBrokerAddr(NewValue);}, [&]() {return GetBrokerAddr();}};
-  Parameter<int32_t> KafkaStatsInterval{"KAFKA_STATS_INT_MS", [&](int32_t NewValue){return SetStatsTimeMS(NewValue);}, [&]() {return GetStatsTimeMS();}};
-  Parameter<int32_t> KafkaQueueSize{"KAFKA_QUEUE_SIZE", [&](int32_t NewValue){return SetMessageQueueLength(NewValue);}, [&]() {return GetMessageQueueLength();}};
+  Parameter<int32_t> ReconnectFlush{"KAFKA_RECONNECT_FLUSH",
+                                    [&](int32_t Value) {
+                                      AttemptFlushAtReconnect(bool(Value));
+                                      return true;
+                                    },
+                                    [&]() { return doFlush; }};
+  Parameter<int32_t> ReconnectFlushTime{"KAFKA_FLUSH_TIME",
+                                        [&](int32_t Value) {
+                                          FlushTimeout(Value);
+                                          return true;
+                                        },
+                                        [&]() { return flushTimeout; }};
+  Parameter<int32_t> MsgBufferSize{
+      "KAFKA_MSG_BUFFER_SIZE",
+      [&](int32_t Value) { return SetMessageBufferSizeKbytes(Value); },
+      [&]() { return GetMessageBufferSizeKbytes(); }};
+  Parameter<int32_t> MaxMessageSize{
+      "KAFKA_MAX_MSG_SIZE",
+      [&](int32_t Value) { return SetMaxMessageSize(Value); },
+      [&]() { return GetMaxMessageSize(); }};
+  Parameter<int32_t> UnsentPackets{"KAFKA_UNSENT_PACKETS",
+                                   [&](int32_t) { return false; },
+                                   [&]() { return UnsentMessages; }};
+  Parameter<int32_t> KafkaStatus{"KAFKA_CONNECTION_STATUS",
+                                 [&](int32_t) { return false; },
+                                 [&]() { return int(CurrentStatus); }};
+  Parameter<std::string> KafkaMessage{"KAFKA_CONNECTION_MESSAGE",
+                                      [&](std::string) { return false; },
+                                      [&]() { return ConnectionMessage; }};
+  Parameter<std::string> KafkaTopic{
+      "KAFKA_TOPIC", [&](std::string NewValue) { return SetTopic(NewValue); },
+      [&]() { return GetTopic(); }};
+  Parameter<std::string> KafkaBroker{
+      "KAFKA_BROKER_ADDRESS",
+      [&](std::string NewValue) { return SetBrokerAddr(NewValue); },
+      [&]() { return GetBrokerAddr(); }};
+  Parameter<int32_t> KafkaStatsInterval{
+      "KAFKA_STATS_INT_MS",
+      [&](int32_t NewValue) { return SetStatsTimeMS(NewValue); },
+      [&]() { return GetStatsTimeMS(); }};
+  Parameter<int32_t> KafkaQueueSize{
+      "KAFKA_QUEUE_SIZE",
+      [&](int32_t NewValue) { return SetMessageQueueLength(NewValue); },
+      [&]() { return GetMessageQueueLength(); }};
 };
 } // namespace KafkaInterface

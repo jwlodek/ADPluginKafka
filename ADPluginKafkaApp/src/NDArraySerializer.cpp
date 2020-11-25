@@ -6,14 +6,15 @@
  */
 
 #include "NDArraySerializer.h"
+#include "TimeUtility.h"
 #include <cassert>
 #include <ciso646>
+#include <cstdint>
 #include <memory>
 #include <vector>
-#include <cstdint>
-#include "TimeUtility.h"
 
-NDArraySerializer::NDArraySerializer(std::string SourceName, const flatbuffers::uoffset_t bufferSize)
+NDArraySerializer::NDArraySerializer(std::string SourceName,
+                                     const flatbuffers::uoffset_t bufferSize)
     : SourceName(SourceName), builder(bufferSize) {}
 
 bool NDArraySerializer::setSourceName(std::string NewSourceName) {
@@ -24,9 +25,7 @@ bool NDArraySerializer::setSourceName(std::string NewSourceName) {
   return true;
 }
 
-std::string NDArraySerializer::getSourceName() {
-  return SourceName;
-}
+std::string NDArraySerializer::getSourceName() { return SourceName; }
 
 void NDArraySerializer::SerializeData(NDArray &pArray,
                                       unsigned char *&bufferPtr,
@@ -74,9 +73,8 @@ void NDArraySerializer::SerializeData(NDArray &pArray,
       auto attrValuePayload = builder.CreateVector(
           reinterpret_cast<unsigned char *>(attrValueBuffer.get()), bytes);
 
-      auto attr = CreateAttribute(builder, temp_attr_str,
-                                               temp_attr_desc, temp_attr_src,
-                                               attrDType, attrValuePayload);
+      auto attr = CreateAttribute(builder, temp_attr_str, temp_attr_desc,
+                                  temp_attr_src, attrDType, attrValuePayload);
       attrVec.push_back(attr);
     } else {
       assert(false);
@@ -86,8 +84,8 @@ void NDArraySerializer::SerializeData(NDArray &pArray,
   }
   auto attributes = builder.CreateVector(attrVec);
   auto Timestamp = epicsTimeToNsec(pArray.epicsTS);
-  auto kf_pkg =
-      CreateADArray(builder, SourceNamePtr, pArray.uniqueId, Timestamp, dims, dType, payload, attributes);
+  auto kf_pkg = CreateADArray(builder, SourceNamePtr, pArray.uniqueId,
+                              Timestamp, dims, dType, payload, attributes);
 
   // Write data to buffer
   builder.Finish(kf_pkg, ADArrayIdentifier());
