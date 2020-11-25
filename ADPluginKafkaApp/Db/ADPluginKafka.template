@@ -89,25 +89,14 @@ record(stringin, "$(P)$(R)ConnectionMessage_RBV")
     field(PINI, "YES")
 }
 
-record(stringout, "$(P)$(R)KafkaBrokerAddress")
-{
-    field(DTYP, "asynOctetWrite")
-    field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))KAFKA_BROKER_ADDRESS")
-	field(PINI, "YES")
-}
-
-record(stringin, "$(P)$(R)KafkaBrokerAddress_RBV")
-{
-    field(DTYP, "asynOctetRead")
-    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))KAFKA_BROKER_ADDRESS")
-    field(PINI, "YES")
-}
+##### Kafka topic
 
 record(stringout, "$(P)$(R)KafkaTopic")
 {
     field(DTYP, "asynOctetWrite")
     field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))KAFKA_TOPIC")
-	field(PINI, "YES")
+	field(FLNK, "$(P)$(R)KafkaTopic_RBV")
+	info(asyn:INITIAL_READBACK, "1")
 }
 
 record(stringin, "$(P)$(R)KafkaTopic_RBV")
@@ -117,11 +106,31 @@ record(stringin, "$(P)$(R)KafkaTopic_RBV")
 	field(PINI, "YES")
 }
 
+##### Kafka broker address
+
+record(stringout, "$(P)$(R)KafkaBrokerAddress")
+{
+    field(DTYP, "asynOctetWrite")
+    field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))KAFKA_BROKER_ADDRESS")
+	field(FLNK, "$(P)$(R)KafkaBrokerAddress_RBV")
+	info(asyn:INITIAL_READBACK, "1")
+}
+
+record(stringin, "$(P)$(R)KafkaBrokerAddress_RBV")
+{
+    field(DTYP, "asynOctetRead")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))KAFKA_BROKER_ADDRESS")
+    field(PINI, "YES")
+}
+
+##### Kafka stats interval
+
 record(longout, "$(P)$(R)KafkaStatsIntervalTime") #Integer in from device
 {
     field(DTYP, "asynInt32")	#Data type
     field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))KAFKA_STATS_INT_MS")
     field(EGU,  "ms")
+    field(FLNK, "$(P)$(R)KafkaStatsIntervalTime_RBV")
 }
 
 record(longin, "$(P)$(R)KafkaStatsIntervalTime_RBV") #Integer in from device
