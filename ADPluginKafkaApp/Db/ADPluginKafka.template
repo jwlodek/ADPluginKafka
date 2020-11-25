@@ -25,6 +25,7 @@ record(bo, "$(P)$(R)ReconnectFlush")
    field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))KAFKA_RECONNECT_FLUSH")
    field(ZNAM, "No flush")
    field(ONAM, "Flush")
+   info(asyn:INITIAL_READBACK, "1")
 }
 
 record(bi, "$(P)$(R)ReconnectFlush_RBV")
@@ -33,6 +34,7 @@ record(bi, "$(P)$(R)ReconnectFlush_RBV")
    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))KAFKA_RECONNECT_FLUSH")
    field(ZNAM, "No flush")
    field(ONAM, "Flush")
+   field(PINI, "YES")
 }
 
 
@@ -41,6 +43,7 @@ record(longout, "$(P)$(R)ReconnectFlushTime")
     field(DTYP, "asynInt32")	#Data type
     field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))KAFKA_FLUSH_TIME")
     field(EGU,  "ms")
+    info(asyn:INITIAL_READBACK, "1")
 }
 
 record(longin, "$(P)$(R)ReconnectFlushTime_RBV")
@@ -48,6 +51,7 @@ record(longin, "$(P)$(R)ReconnectFlushTime_RBV")
     field(DTYP, "asynInt32")	#Data type
     field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))KAFKA_FLUSH_TIME")
     field(EGU,  "ms")
+    field(PINI, "YES")
 }
 
 
