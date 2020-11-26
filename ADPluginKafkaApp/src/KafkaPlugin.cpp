@@ -275,15 +275,13 @@ static const iocshArg initArg2 = {"blocking callbacks", iocshArgInt};
 static const iocshArg initArg3 = {"NDArrayPort", iocshArgString};
 static const iocshArg initArg4 = {"NDArrayAddr", iocshArgInt};
 static const iocshArg initArg5 = {"maxMemory", iocshArgInt};
-// static const iocshArg initArg6 = {"priority", iocshArgInt};
-// static const iocshArg initArg7 = {"stack size", iocshArgInt};
-static const iocshArg initArg8 = {"broker address", iocshArgString};
-static const iocshArg initArg9 = {"topic", iocshArgString};
-static const iocshArg initArg10 = {"source name", iocshArgString};
+static const iocshArg initArg6 = {"broker address", iocshArgString};
+static const iocshArg initArg7 = {"topic", iocshArgString};
+static const iocshArg initArg8 = {"source name", iocshArgString};
 
 static const iocshArg *const initArgs[] = {&initArg0, &initArg1, &initArg2,
                                            &initArg3, &initArg4, &initArg5,
-                                           &initArg8, &initArg9, &initArg10};
+                                           &initArg6, &initArg7, &initArg8};
 static const iocshFuncDef initFuncDef = {"KafkaPluginConfigure", 9, initArgs};
 static void initCallFunc(const iocshArgBuf *args) {
   KafkaPluginConfigure(args[0].sval, args[1].ival, args[2].ival, args[3].sval,

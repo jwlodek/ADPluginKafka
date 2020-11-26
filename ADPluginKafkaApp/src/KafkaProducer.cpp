@@ -13,8 +13,7 @@
 namespace KafkaInterface {
 
 KafkaProducer::KafkaProducer(std::string const &broker, std::string topic,
-                             ParameterHandler *ParamRegistrar, int queueSize)
-    : msgQueueSize(queueSize),
+                             ParameterHandler *ParamRegistrar) :
       conf(RdKafka::Conf::create(RdKafka::Conf::CONF_GLOBAL)),
       tconf(RdKafka::Conf::create(RdKafka::Conf::CONF_TOPIC)),
       TopicName(std::move(topic)) {
@@ -34,9 +33,8 @@ KafkaProducer::KafkaProducer(std::string const &broker, std::string topic,
   MakeConnection();
 }
 
-KafkaProducer::KafkaProducer(int queueSize)
-    : msgQueueSize(queueSize),
-      conf(RdKafka::Conf::create(RdKafka::Conf::CONF_GLOBAL)),
+KafkaProducer::KafkaProducer()
+    : conf(RdKafka::Conf::create(RdKafka::Conf::CONF_GLOBAL)),
       tconf(RdKafka::Conf::create(RdKafka::Conf::CONF_TOPIC)) {
   InitRdKafka();
 }
@@ -360,6 +358,7 @@ bool KafkaProducer::MakeConnection() {
       return false;
     }
   }
+  SetConStat(KafkaProducer::ConStat::CONNECTING, "Trying to open Kafka connection.");
   return true;
 }
 } // namespace KafkaInterface

@@ -29,18 +29,26 @@ The steps shown here worked on the development machine but has been tested nowhe
 7. Run `sh start_epics` from that directory.
 
 ## Process variables (PV:s)
-This plugin provides a few extra process variables (PV) besides the ones provided through inheritance from `NDPluginDriver`. The plugin also modifies one process variable inherited from `NDPluginDriver` directly. All the relevant PVs are listed below.
+This plugin provides a few extra process variables (PV) besides the ones provided through inheritance from `NDPluginDriver`. The plugin also modifies one process variable inherited from `NDPluginDriver` directly. The new PV are listed below. Note that the PV names are prefixed by `$(P)$(R)`.
 
-* `$(P)$(R)KafkaBrokerAddress` and `$(P)$(R)KafkaBrokerAddress_RBV` are used to set the address of one or more Kafka broker.The address should include the port and have the following form:`address:port`. When using several addresses they should be separated by a comma. Note that the text string is limited to 40 characters.
-* `$(P)$(R)KafkaTopic` and `$(P)$(R)KafkaTopic_RBV` are used to set and retrieve the current topic. Limited to 40 characters.
-* `$(P)$(R)ConnectionStatus_RBV` holds an integer corresponding to the current connection status. Se `ADPluginKafka.template` for possible values.
-* `$(P)$(R)SourceName` and `$(P)$(R)SourceName_RBV` are used to write and read the source name placed in the flatbuffers sent to Kafka.
-* `$(P)$(R)ConnectionMessage_RBV` is a PV that has a text message of at most 40 characters that gives information about the current connection status.
-* `$(P)$(R)KafkaMaxQueueSize` and `$(P)$(R)KafkaMaxQueueSize_RBV` modifies and reads the number of messages allowed in the Kafka output buffer. Never set to a value < 1.
-* `$(P)$(R)UnsentPackets_RBV` keeps track of the number of messages not yet transmitted to the Kafka broker. The minimum time between updates of this value is set by the next PV.
-* `$(P)$(R)KafkaMaxMessageSize_RBV` is used to read the maximum message size allowed by librdkafka. This value should be updated automatically as message sizes exceeds their old values. The absolute maximum size is approx. 953 MB.
-* `$(P)$(R)KafkaStatsIntervalTime` and `$(P)$(R)KafkaStatsIntervalTime_RBV` are used to set and read the time between Kafka broker connection stats. This value is given in milliseconds (ms). Setting a very short update time is not advised.
-* `$(P)$(R)DroppedArrays_RBV` is increased if the Kafka producer messages queue is full (i.e `$(P)$(R)UnsentPackets_RBV` is equal to `$(P)$(R)KafkaMaxQueueSize_RBV`.
+PV | Type | Default value | Description
+---|---|---|---
+SourceName, SourceName_RBV | `string` | n/a |The name of the data source in the flatbuffers produced by this plugin. Can not be an empty string.
+ReconnectFlush, ReconnectFlush_RBV | `bool` (0 or 1) | `false` | Tells the plugin if it should attempt to flush the current message buffer before re-doing a connection. Disabled by default as this is ablocking call.
+ReconnectFlushTime, ReconnectFlushTime_RBV | `int` | `500` [ms] | The (maximum) amount of time in ms to wait (block) for a flush to finish if _ReconnectFlush_ is set to `true`.
+KafkaBufferSize, KafkaBufferSize_RBV | `int` | `500000` [kb] | The maximum kafka message buffer size in kb. Note that this setting has a higher priority than _KafkaMaxQueueSize_. Changing this value will trigger a disconnect and re-connect of the Kafka connection.
+KafkaMaxMessageSize, KafkaMaxMessageSize_RBV | `int` | `10000000` [b]| The maximum accepted message size (of individual flatbuffer messages) in bytes. Changing this value will trigger a disconnect and re-connect of the Kafka connection.
+UnsentPackets_RBV | `int` | n/a | The number of (flatbuffer) messages lost/dropped due to connection issues with the Kafka broker. Note that we will only start dropping (permanently loosing) messages when the message buffer is full.
+ConnectionStatus_RBV | `enum` | n/a | The current Kafka connection status of the plugin. Can take the values "Connected" (0), "Connecting" (1), "Disconnected" (2), "Error" (3).
+ConnectionMessage_RBV | `string` | n/a | The current connection status in the form of a string. For easier debugging of connection issues.
+KafkaTopic, KafkaTopic_RBV | `string` | n/a | The Kafka topic to which the flatbufffer messages are to be transmitted. Can not be an empty string.
+KafkaBrokerAddress, KafkaBrokerAddress_RBV | `string` | n/a | The address (and port) to a Kafka broker. Note that if you have more than one broker in your cluster, the address provided here might not be the one that is ultimately used. Changing this value will trigger a disconnect and re-connect of the Kafka connection.
+KafkaStatsIntervalTime, KafkaStatsIntervalTime_RBV | `int` | `500` [ms] | How often the Kafka connection status PVs are updated in ms. Changing this value will trigger a disconnect and re-connect of the Kafka connection.
+KafkaMaxQueueSize, KafkaMaxQueueSize_RBV | `int` | 200 | Maximum number of messages in the buffer of messages to be sent to Kafka. Note that this setting has a lower priority than _KafkaBufferSize_. Changing this value will trigger a disconnect and re-connect of the Kafka connection.
+
+
+
+
 
 ## Unit tests
 The repository contains a directory with code for unit tests of the two projects. Do note that the build system of the unit tests (specifically the CMake file) will most likely require some modification to work on your system. Due to differences in EPICS installations, the CMake file has only been tested on the development machine (running MacOSX).

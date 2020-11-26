@@ -60,7 +60,7 @@ public:
    * buffer.
    */
   KafkaProducer(std::string const &broker, std::string topic,
-                ParameterHandler *ParamRegistrar, int queueSize = 10);
+                ParameterHandler *ParamRegistrar);
 
   /** @brief Simple consumer constructor which will not connect to a broker.
    * @note After calling the constructor, the rest of the instructions given in
@@ -68,11 +68,8 @@ public:
    * description must also be followed.
    * Requires the setting of a broker address and topic name before production
    * can be started.
-   * @param[in] queueSize The maximum number of messages that the librdkafka
-   * will store in its
-   * buffer.
    */
-  explicit KafkaProducer(int queueSize = 10);
+  KafkaProducer();
 
   /** @brief Destructor.
    * Will signal the stats thread to exit and will only return when it has done
@@ -208,12 +205,10 @@ public:
   virtual bool SendKafkaPacket(const unsigned char *buffer, size_t buffer_size,
                                time_point Timestamp);
 
-  static int GetNumberOfPVs();
-
 protected:
   bool errorState{
       false}; /// @brief Set to true if librdkafka could not be initialized.
-  bool doFlush{true}; /// @brief Should a flush attempt be made at disconnect?
+  bool doFlush{false}; /// @brief Should a flush attempt be made at disconnect?
   int32_t flushTimeout{
       500}; /// @brief What is the timeout of the flush attempt?
 
@@ -221,7 +216,7 @@ protected:
       10000000}; /// @brief Stored maximum message size in bytes.
   size_t maxMessageBufferSizeKb{
       500000};      /// @brief Message buffer size in kilo bytes.
-  int msgQueueSize; /// @brief Stored maximum Kafka producer queue length.
+  int msgQueueSize{200}; /// @brief Stored maximum Kafka producer queue length.
 
   /** @brief Callback member function used by the status and error handling
    * system of librdkafka.
