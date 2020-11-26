@@ -1,6 +1,9 @@
-//
-// Created by Jonas Nilsson on 2020-11-24.
-//
+/** Copyright (C) 2017 European Spallation Source */
+
+/** @file
+ *  @brief A class for handling parameters.
+ */
+
 
 #include "ParameterHandler.h"
 #include "Parameter.h"

@@ -17,8 +17,7 @@ public:
   virtual ~ParameterBase() = default;
   void registerRegistrar(ParameterHandler *Registrar);
   std::string getParameterName() { return ParameterName; }
-  void setHandlerPointer(ParameterHandler *NewPtr);
-  void updateDbValue();
+  virtual void updateDbValue();
 
 private:
   ParameterHandler *HandlerPtr{nullptr};
@@ -31,7 +30,7 @@ public:
             std::function<ParamType()> ReadParamFunc)
       : ParameterBase(Name), WriteFunc(WriteParamFunc),
         ReadFunc(ReadParamFunc) {}
-  void writeValue(ParamType NewValue) { WriteFunc(NewValue); }
+  bool writeValue(ParamType NewValue) {return WriteFunc(NewValue); }
   ParamType readValue() { return ReadFunc(); }
 
 private:

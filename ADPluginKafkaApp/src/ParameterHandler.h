@@ -13,6 +13,7 @@
 class ParameterHandler {
 public:
   ParameterHandler(asynPortDriver *DriverPtr);
+  virtual ~ParameterHandler() = default;
   void registerParameter(ParameterBase *Param);
 
   template <class ParamType> bool write(int Index, ParamType Value) {
@@ -22,11 +23,10 @@ public:
       if (ParamPtr == nullptr) {
         return false;
       }
-      ParamPtr->writeValue(Value);
+      return ParamPtr->writeValue(Value);
     } catch (std::out_of_range const &) {
       return false;
     }
-    return true;
   }
 
   template <class ParamType> bool read(int Index, ParamType &Value) {
@@ -42,7 +42,7 @@ public:
     }
     return true;
   }
-  void updateDbValue(ParameterBase *ParamPtr);
+  virtual void updateDbValue(ParameterBase *ParamPtr);
 
 private:
   std::map<int, ParameterBase *> KnownParameters;

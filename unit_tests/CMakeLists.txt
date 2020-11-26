@@ -97,13 +97,13 @@ set(Test_SRC
   PortName.cpp
   $<TARGET_OBJECTS:Plugin>
   $<TARGET_OBJECTS:Common>
-)
+    ParamaterTest.cpp ParameterHandlerTest.cpp NDPluginDriverStandIn.cpp)
 
 set(Test_INC
   GenerateNDArray.h
   PortName.h
   NDArrayDeSerializer.h
-)
+    NDPluginDriverStandIn.h)
 
 add_executable(unit_tests ${Test_SRC} ${Test_INC})
 target_include_directories(unit_tests PRIVATE "../ADPluginKafkaApp/src/")

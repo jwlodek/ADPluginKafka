@@ -41,14 +41,6 @@ public:
 /// @brief A testing fixture used for setting up unit tests.
 class KafkaPluginEnv : public Test {
 public:
-  static void SetUpTestCase(){
-
-  };
-
-  static void TearDownTestCase(){
-
-  };
-
   virtual void SetUp(){};
 
   virtual void TearDown(){
@@ -56,32 +48,9 @@ public:
   };
 };
 
-//TEST_F(KafkaPluginEnv, InitParamsIndexTest) {
-//  KafkaPluginStandIn plugin;
-//  for (auto &p : plugin.paramsList) {
-//    ASSERT_NE(*p.index, 0);
-//  }
-//
-//  for (auto &p : plugin.producer.GetParams()) {
-//    ASSERT_NE(*p.index, 0);
-//  }
-//}
-//
-//TEST_F(KafkaPluginEnv, ParameterCountTest) {
-//  KafkaPluginStandIn plug;
-//  ASSERT_EQ(plug.paramsList.size(), KafkaPluginStandIn::PV::count);
-//}
-
 TEST_F(KafkaPluginEnv, InitIsErrorStateTest) {
   KafkaPluginStandIn plugin;
   ASSERT_TRUE(plugin.producer.SetStatsTimeMS(10000));
-}
-
-TEST_F(KafkaPluginEnv, ParamCallbackIsSetTest) {
-  KafkaPluginStandIn plugin;
-  int usedValue = 5000;
-  EXPECT_CALL(plugin, setIntegerParam(_, Eq(usedValue))).Times(Exactly(1));
-  ASSERT_TRUE(plugin.producer.SetMaxMessageSize(usedValue));
 }
 
 TEST_F(KafkaPluginEnv, ProducerThreadIsRunningTest) {

@@ -5,10 +5,9 @@
  */
 
 #include "KafkaProducer.h"
-#include <NDPluginDriver.h>
 #include <ciso646>
-#include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include "NDPluginDriverStandIn.h"
 
 namespace KafkaInterface {
 
@@ -34,48 +33,11 @@ namespace KafkaInterface {
 //  ParameterHandler Registrar(nullptr);
 //};
 
-/// @brief Simple stand-in class used for unit tests.
-class NDPluginDriverStandIn : public NDPluginDriver {
-public:
-  NDPluginDriverStandIn(const char *portName, int queueSize,
-                        int blockingCallbacks, const char *NDArrayPort,
-                        int NDArrayAddr, int maxAddr, int numParams,
-                        int maxBuffers, size_t maxMemory, int interfaceMask,
-                        int interruptMask, int asynFlags, int autoConnect,
-                        int priority, int stackSize)
-      : NDPluginDriver(portName, queueSize, blockingCallbacks, NDArrayPort,
-                       NDArrayAddr, maxAddr, numParams, maxBuffers, maxMemory,
-                       interfaceMask, interruptMask, asynFlags, autoConnect,
-                       priority, stackSize){};
-  MOCK_METHOD2(setStringParam, asynStatus(int, const char *));
-  MOCK_METHOD2(setIntegerParam, asynStatus(int, int));
-  MOCK_METHOD3(createParam, asynStatus(const char *, asynParamType, int *));
-  MOCK_METHOD1(processCallbacks, void(NDArray*));
-};
-
-static int NameCtr{0};
-
 /// @brief A testing fixture used for setting up unit tests.
 class KafkaProducerEnv : public ::testing::Test {
 public:
   virtual void SetUp() {
-    std::string portName("someNameFirst" + std::to_string(NameCtr++));
-    int queueSize = 10;
-    int blockingCallbacks = 0;
-    std::string NDArrayPort("NDArrayPortName");
-    int NDArrayAddr = 42;
-    int numberOfParams = 0;
-    size_t maxMemory = 10;
-    int mask1 = asynInt8ArrayMask | asynInt16ArrayMask | asynInt32ArrayMask |
-                asynFloat32ArrayMask | asynFloat64ArrayMask;
-    int mask2 = asynInt8ArrayMask | asynInt16ArrayMask | asynInt32ArrayMask |
-                asynFloat32ArrayMask | asynFloat64ArrayMask;
-    int priority = 0;
-    int stackSize = 5;
-    plugin.reset(new NDPluginDriverStandIn(
-        portName.c_str(), queueSize, blockingCallbacks, NDArrayPort.c_str(),
-        NDArrayAddr, 1, numberOfParams, 2, maxMemory, mask1, mask2, 0, 1,
-        priority, stackSize));
+    plugin = createStandInDriverPlugin();
   };
 
   virtual void TearDown() {
