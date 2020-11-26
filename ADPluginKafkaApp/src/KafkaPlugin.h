@@ -12,7 +12,6 @@
 
 #include "KafkaProducer.h"
 #include "NDArraySerializer.h"
-#include "ParamUtility.h"
 #include "Parameter.h"
 #include "ParameterHandler.h"
 #include <NDPluginDriver.h>

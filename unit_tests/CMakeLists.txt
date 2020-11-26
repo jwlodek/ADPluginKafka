@@ -54,7 +54,6 @@ set(Common_INC
     json/json.h
     flatbuffers/stl_emulation.h
     ADArray_schema_generated.h
-    ParamUtility.h
 )
 
 list(TRANSFORM Common_SRC PREPEND "../ADPluginKafkaApp/src/")
@@ -95,7 +94,6 @@ set(Test_SRC
   KafkaProducerTest.cpp
   NDArraySerializerTest.cpp
   NDArrayDeSerializer.cpp
-  ParamUtilityTest.cpp
   PortName.cpp
   $<TARGET_OBJECTS:Plugin>
   $<TARGET_OBJECTS:Common>

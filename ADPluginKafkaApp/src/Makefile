@@ -7,7 +7,6 @@ include $(TOP)/configure/CONFIG
 INC += KafkaPlugin.h
 INC += NDArraySerializer.h
 INC += KafkaProducer.h
-INC += ParamUtility.h
 INC += TimeUtility.h
 INC += Parameter.h
 INC += ParameterHandler.h
