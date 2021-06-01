@@ -11,3 +11,10 @@ pipeline.gdsl
 /system-tests/output-files/*.nxs
 venv
 *.log
+lib/
+O.*/
+include/
+db/
+dbd/
+*OLD/
+bin/
