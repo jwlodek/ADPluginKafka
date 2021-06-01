@@ -1,0 +1,12 @@
+2021-05-28 16:40:39.013 INFO [Thread 32] org.csstudio.security.authentication.UnattendedCallbackHandler (handleText) - OK
+2021-05-28 16:40:40.643 WARNING [Thread 1] org.csstudio.logging.PluginLogListener (logging) - Keybinding conflicts occurred.  They may interfere with normal accelerator operation.
+2021-05-28 16:40:40.682 WARNING [Thread 1] javax.xml.bind.ContextFinder (getDeprecatedSystemProperty) - Using non-standard property: javax.xml.bind.context.factory. Property javax.xml.bind.JAXBContextFactory should be used instead.
+2021-05-28 16:40:40.810 WARNING [Thread 1] javax.xml.bind.ContextFinder (getDeprecatedSystemProperty) - Using non-standard property: javax.xml.bind.context.factory. Property javax.xml.bind.JAXBContextFactory should be used instead.
+2021-05-28 16:40:40.824 INFO [Thread 1] org.diirt.util.config.Configuration (getFile) - Loading /tmp/DIIRT13647656177653936723/datasources/datasources.xml
+2021-05-28 16:40:42.987 INFO [Thread 1] org.csstudio.utility.olog.OlogClientFromPreferences (<init>) - Creating Olog client : https://localhost:8181/Olog/resources
+2021-05-28 16:40:43.330 INFO [Thread 43] org.diirt.util.config.Configuration (getFile) - Loading /tmp/DIIRT13647656177653936723/datasources/ca/ca.xml
+2021-05-28 16:40:43.808 WARNING [Thread 1] javax.xml.bind.ContextFinder (getDeprecatedSystemProperty) - Using non-standard property: javax.xml.bind.context.factory. Property javax.xml.bind.JAXBContextFactory should be used instead.
+2021-05-28 16:40:43.813 WARNING [Thread 1] javax.xml.bind.ContextFinder (getDeprecatedSystemProperty) - Using non-standard property: javax.xml.bind.context.factory. Property javax.xml.bind.JAXBContextFactory should be used instead.
+2021-05-28 16:40:43.818 INFO [Thread 1] org.diirt.util.config.Configuration (getFile) - Loading /tmp/DIIRT5357103060016891028/datasources/datasources.xml
+2021-05-28 16:40:44.501 WARNING [Thread 72] org.csstudio.logging.PluginLogListener (logging) - Removing part descriptor with the 'org.csstudio.pretune' id and the 'pretune' description. Points to the invalid 'bundleclass://org.eclipse.ui.workbench/org.eclipse.ui.internal.e4.compatibility.CompatibilityView' class.
+2021-05-28 16:54:42.083 INFO [Thread 1] org.csstudio.opibuilder.widgets.editparts.LinkingContainerEditpart (configureDisplayModel) - /cs-studio-xf/ADet/nsls2edits/NDPluginCV_commonPluginsLine.opi
